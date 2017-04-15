@@ -11,11 +11,11 @@
 #
 
 include(vcpkg_common_functions)
-set(SOURCE_PATH ${CURRENT_BUILDTREES_DIR}/src/dtl-1.19)
+set(SOURCE_PATH ${CURRENT_BUILDTREES_DIR}/src/dtl-master)
 vcpkg_download_distfile(ARCHIVE
-    URLS "https://github.com/cubicdaiya/dtl/archive/v1.19.tar.gz"
-    FILENAME "dtl-1.19.0.tgz"
-    SHA512 77c767451b1b78ce49085da6ff5bb8a23c96dec56a37d96ef357a6b69a1b2cd45e2c6c4e8f91ee34ca080ce03a26518c478ff207309326a4bc7e729eaa2824b2
+    URLS "https://github.com/littlemole/dtl/archive/master.zip"
+    FILENAME "dtl-1.19.0.zip"
+    SHA512 882f1ba6a83578d837999a77eac247fa13216c1317d1aabcca39212c66af0db450bc3b2c1693cda38563cd3e58dbbe68ce4adbebb2a2089800199babf76e932c
 )
 vcpkg_extract_source_archive(${ARCHIVE})
 

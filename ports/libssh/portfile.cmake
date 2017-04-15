@@ -63,6 +63,8 @@ file(RENAME ${CURRENT_PACKAGES_DIR}/debug/lib/static/ssh.lib ${CURRENT_PACKAGES_
 file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/debug/lib/static)
 endif()
 
+file(COPY ${SOURCE_PATH}/include/libssh/scp.h DESTINATION ${CURRENT_PACKAGES_DIR}/include/libssh)
+
 # Handle copyright
 file(COPY ${SOURCE_PATH}/COPYING DESTINATION ${CURRENT_PACKAGES_DIR}/share/libssh)
 file(RENAME ${CURRENT_PACKAGES_DIR}/share/libssh/COPYING ${CURRENT_PACKAGES_DIR}/share/libssh/copyright)
