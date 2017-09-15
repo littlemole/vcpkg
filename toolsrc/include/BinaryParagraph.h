@@ -1,16 +1,20 @@
 #pragma once
 
-#include <unordered_map>
-#include "SourceParagraph.h"
 #include "PackageSpec.h"
+#include "SourceParagraph.h"
+#include <unordered_map>
 
 namespace vcpkg
 {
+    /// <summary>
+    /// Built package metadata
+    /// </summary>
     struct BinaryParagraph
     {
         BinaryParagraph();
         explicit BinaryParagraph(std::unordered_map<std::string, std::string> fields);
         BinaryParagraph(const SourceParagraph& spgh, const Triplet& triplet);
+        BinaryParagraph(const SourceParagraph& spgh, const FeatureParagraph& fpgh, const Triplet& triplet);
 
         std::string displayname() const;
 
@@ -22,8 +26,16 @@ namespace vcpkg
         std::string version;
         std::string description;
         std::string maintainer;
+        std::string feature;
+        std::vector<std::string> default_features;
         std::vector<std::string> depends;
     };
 
-    std::ostream& operator<<(std::ostream& os, const BinaryParagraph& pgh);
+    struct BinaryControlFile
+    {
+        BinaryParagraph core_paragraph;
+        std::vector<BinaryParagraph> features;
+    };
+
+    void serialize(const BinaryParagraph& pgh, std::string& out_str);
 }

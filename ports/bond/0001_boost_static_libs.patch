@@ -1,17 +1,17 @@
 diff --git a/cmake/Config.cmake b/cmake/Config.cmake
-index ed225d14..1573c915 100644
+index d5125c70..a2eb536c 100644
 --- a/cmake/Config.cmake
 +++ b/cmake/Config.cmake
-@@ -19,7 +19,7 @@ if (MSVC)
-     # disable MSVC warnings
-     add_compile_options (/bigobj /FIbond/core/warning.h /W4 /WX)
-     add_definitions (-D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS)
+@@ -46,7 +46,7 @@ if (MSVC)
+       add_compile_options (/permissive-)
+     endif()
+ 
 -    set (Boost_USE_STATIC_LIBS ON)
 +    set (Boost_USE_STATIC_LIBS OFF)
  endif (MSVC)
  
  if (WIN32)
-@@ -90,9 +90,6 @@ if (DEFINED ENV{APPVEYOR} AND ("$ENV{BOND_BUILD}" STREQUAL "C++"))
+@@ -131,9 +131,6 @@ if (DEFINED ENV{APPVEYOR} AND ("$ENV{BOND_BUILD}" STREQUAL "C++"))
      endif()
  endif()
  

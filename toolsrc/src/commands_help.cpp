@@ -1,17 +1,40 @@
 #include "pch.h"
+
 #include "vcpkg_Commands.h"
 #include "vcpkg_System.h"
 
 namespace vcpkg::Commands::Help
 {
+    void help_topics()
+    {
+        System::println("Available help topics:\n"
+                        "  triplet\n"
+                        "  integrate\n"
+                        "  export");
+    }
+
     void help_topic_valid_triplet(const VcpkgPaths& paths)
     {
         System::println("Available architecture triplets:");
-        auto it = fs::directory_iterator(paths.triplets);
-        for (; it != fs::directory_iterator(); ++it)
+        for (auto&& path : paths.get_filesystem().get_files_non_recursive(paths.triplets))
         {
-            System::println("  %s", it->path().stem().filename().string());
+            System::println("  %s", path.stem().filename().string());
         }
+    }
+
+    void help_topic_export()
+    {
+        System::println("Summary:\n"
+                        "  vcpkg export [options] <pkgs>...\n"
+                        "\n"
+                        "Options:\n"
+                        "  --7zip                          Export to a 7zip (.7z) file\n"
+                        "  --dry-run                       Do not actually export\n"
+                        "  --nuget                         Export a NuGet package\n"
+                        "  --nuget-id=<id>                 Specify the id for the exported NuGet package\n"
+                        "  --nuget-version=<ver>           Specify the version for the exported NuGet package\n"
+                        "  --raw                           Export to an uncompressed directory\n"
+                        "  --zip                           Export to a zip file");
     }
 
     void print_usage()
@@ -25,9 +48,12 @@ namespace vcpkg::Commands::Help
             "  vcpkg list                      List installed packages\n"
             "  vcpkg update                    Display list of packages for updating\n"
             "  vcpkg hash <file> [alg]         Hash a file by specific algorithm, default SHA512\n"
+            "  vcpkg help topics               Display the list of help topics\n"
+            "  vcpkg help <topic>              Display help for a specific topic\n"
             "\n"
             "%s" // Integration help
             "\n"
+            "  vcpkg export <pkg>... [opt]...  Exports a package\n"
             "  vcpkg edit <pkg>                Open up a port for editing (uses %%EDITOR%%, default 'code')\n"
             "  vcpkg import <pkg>              Import a pre-built library\n"
             "  vcpkg create <pkg> <url>\n"
@@ -48,14 +74,15 @@ namespace vcpkg::Commands::Help
             "  --vcpkg-root <path>             Specify the vcpkg root directory\n"
             "                                  (default: %%VCPKG_ROOT%%)\n"
             "\n"
-            "For more help (including examples) see the accompanying README.md."
-            , Integrate::INTEGRATE_COMMAND_HELPSTRING);
+            "For more help (including examples) see the accompanying README.md.",
+            Integrate::INTEGRATE_COMMAND_HELPSTRING);
     }
 
     std::string create_example_string(const std::string& command_and_arguments)
     {
         std::string cs = Strings::format("Example:\n"
-                                         "  vcpkg %s", command_and_arguments);
+                                         "  vcpkg %s\n",
+                                         command_and_arguments);
         return cs;
     }
 
@@ -75,14 +102,28 @@ namespace vcpkg::Commands::Help
             Checks::exit_success(VCPKG_LINE_INFO);
         }
         const auto& topic = args.command_arguments[0];
-        if (topic == "triplet")
+        if (topic == "triplet" || topic == "triplets" || topic == "triple")
         {
             help_topic_valid_triplet(paths);
+        }
+        else if (topic == "export")
+        {
+            help_topic_export();
+        }
+        else if (topic == "integrate")
+        {
+            System::print("Commands:\n"
+                          "%s",
+                          Integrate::INTEGRATE_COMMAND_HELPSTRING);
+        }
+        else if (topic == "topics")
+        {
+            help_topics();
         }
         else
         {
             System::println(System::Color::error, "Error: unknown topic %s", topic);
-            print_usage();
+            help_topics();
             Checks::exit_fail(VCPKG_LINE_INFO);
         }
         Checks::exit_success(VCPKG_LINE_INFO);

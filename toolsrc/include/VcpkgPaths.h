@@ -1,17 +1,26 @@
 #pragma once
-#include "filesystem_fs.h"
-#include "vcpkg_expected.h"
-#include "PackageSpec.h"
 #include "BinaryParagraph.h"
 #include "Lazy.h"
+#include "PackageSpec.h"
+#include "filesystem_fs.h"
+#include "vcpkg_Files.h"
+#include "vcpkg_expected.h"
 
 namespace vcpkg
 {
+    struct ToolsetArchOption
+    {
+        CWStringView name;
+        System::CPUArchitecture host_arch;
+        System::CPUArchitecture target_arch;
+    };
+
     struct Toolset
     {
         fs::path dumpbin;
         fs::path vcvarsall;
         CWStringView version;
+        std::vector<ToolsetArchOption> supported_architectures;
     };
 
     struct VcpkgPaths
@@ -20,6 +29,7 @@ namespace vcpkg
 
         fs::path package_dir(const PackageSpec& spec) const;
         fs::path port_dir(const PackageSpec& spec) const;
+        fs::path port_dir(const std::string& name) const;
         fs::path build_info_file_path(const PackageSpec& spec) const;
         fs::path listfile_path(const BinaryParagraph& pgh) const;
 
@@ -47,12 +57,19 @@ namespace vcpkg
         const fs::path& get_cmake_exe() const;
         const fs::path& get_git_exe() const;
         const fs::path& get_nuget_exe() const;
-        const Toolset& get_toolset() const;
+
+        /// <summary>Retrieve a toolset matching a VS version</summary>
+        /// <remarks>
+        ///   Valid version strings are "v140", "v141", and "". Empty string gets the latest.
+        /// </remarks>
+        const Toolset& get_toolset(const std::string& toolset_version) const;
+
+        Files::Filesystem& get_filesystem() const;
 
     private:
         Lazy<fs::path> cmake_exe;
         Lazy<fs::path> git_exe;
         Lazy<fs::path> nuget_exe;
-        Lazy<Toolset> toolset;
+        Lazy<std::vector<Toolset>> toolsets;
     };
 }

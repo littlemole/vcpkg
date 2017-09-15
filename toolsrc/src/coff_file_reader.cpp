@@ -1,18 +1,19 @@
 #include "pch.h"
+
 #include "coff_file_reader.h"
 #include "vcpkg_Checks.h"
 
 using namespace std;
 
-namespace vcpkg::COFFFileReader
+namespace vcpkg::CoffFileReader
 {
-    template <class T>
+    template<class T>
     static T reinterpret_bytes(const char* data)
     {
-        return (*reinterpret_cast<const T *>(&data[0]));
+        return (*reinterpret_cast<const T*>(&data[0]));
     }
 
-    template <class T>
+    template<class T>
     static T read_value_from_stream(fstream& fs)
     {
         T data;
@@ -20,19 +21,25 @@ namespace vcpkg::COFFFileReader
         return data;
     }
 
-    template <class T>
+    template<class T>
     static T peek_value_from_stream(fstream& fs)
     {
-        fpos_t original_pos = fs.tellg().seekpos();
+        const fpos_t original_pos = fs.tellg().seekpos();
         T data;
         fs.read(reinterpret_cast<char*>(&data), sizeof data);
         fs.seekg(original_pos);
         return data;
     }
 
-    static void verify_equal_strings(const LineInfo& line_info, const char* expected, const char* actual, int size, const char* label)
+    static void verify_equal_strings(
+        const LineInfo& line_info, const char* expected, const char* actual, int size, const char* label)
     {
-        Checks::check_exit(line_info, memcmp(expected, actual, size) == 0, "Incorrect string (%s) found. Expected: (%s) but found (%s)", label, expected, actual);
+        Checks::check_exit(line_info,
+                           memcmp(expected, actual, size) == 0,
+                           "Incorrect string (%s) found. Expected: (%s) but found (%s)",
+                           label,
+                           expected,
+                           actual);
     }
 
     static void read_and_verify_PE_signature(fstream& fs)
@@ -73,14 +80,14 @@ namespace vcpkg::COFFFileReader
             return ret;
         }
 
-        MachineType machineType() const
+        MachineType machine_type() const
         {
             static const size_t MACHINE_TYPE_OFFSET = 0;
             static const size_t MACHINE_TYPE_SIZE = 2;
 
             std::string machine_field_as_string = data.substr(MACHINE_TYPE_OFFSET, MACHINE_TYPE_SIZE);
             const uint16_t machine = reinterpret_bytes<uint16_t>(machine_field_as_string.c_str());
-            return getMachineType(machine);
+            return to_machine_type(machine);
         }
 
     private:
@@ -104,7 +111,8 @@ namespace vcpkg::COFFFileReader
             if (ret.data[0] != '\0') // Due to freeglut. github issue #223
             {
                 const std::string header_end = ret.data.substr(HEADER_END_OFFSET, HEADER_END_SIZE);
-                verify_equal_strings(VCPKG_LINE_INFO, HEADER_END, header_end.c_str(), HEADER_END_SIZE, "LIB HEADER_END");
+                verify_equal_strings(
+                    VCPKG_LINE_INFO, HEADER_END, header_end.c_str(), HEADER_END_SIZE, "LIB HEADER_END");
             }
 
             return ret;
@@ -195,14 +203,14 @@ namespace vcpkg::COFFFileReader
             return ret;
         }
 
-        MachineType machineType() const
+        MachineType machine_type() const
         {
             static const size_t MACHINE_TYPE_OFFSET = 6;
             static const size_t MACHINE_TYPE_SIZE = 2;
 
             std::string machine_field_as_string = data.substr(MACHINE_TYPE_OFFSET, MACHINE_TYPE_SIZE);
             const uint16_t machine = reinterpret_bytes<uint16_t>(machine_field_as_string.c_str());
-            return getMachineType(machine);
+            return to_machine_type(machine);
         }
 
     private:
@@ -228,31 +236,19 @@ namespace vcpkg::COFFFileReader
 
         read_and_verify_PE_signature(fs);
         CoffFileHeader header = CoffFileHeader::read(fs);
-        MachineType machine = header.machineType();
+        const MachineType machine = header.machine_type();
         return {machine};
     }
 
     struct Marker
     {
-        void set_to_offset(const fpos_t position)
-        {
-            this->m_absolute_position = position;
-        }
+        void set_to_offset(const fpos_t position) { this->m_absolute_position = position; }
 
-        void set_to_current_pos(fstream& fs)
-        {
-            this->m_absolute_position = fs.tellg().seekpos();
-        }
+        void set_to_current_pos(fstream& fs) { this->m_absolute_position = fs.tellg().seekpos(); }
 
-        void seek_to_marker(fstream& fs) const
-        {
-            fs.seekg(this->m_absolute_position, ios_base::beg);
-        }
+        void seek_to_marker(fstream& fs) const { fs.seekg(this->m_absolute_position, ios_base::beg); }
 
-        void advance_by(const uint64_t offset)
-        {
-            this->m_absolute_position += offset;
-        }
+        void advance_by(const uint64_t offset) { this->m_absolute_position += offset; }
 
     private:
         fpos_t m_absolute_position = 0;
@@ -270,19 +266,23 @@ namespace vcpkg::COFFFileReader
 
         // First Linker Member
         const ArchiveMemberHeader first_linker_member_header = ArchiveMemberHeader::read(fs);
-        Checks::check_exit(VCPKG_LINE_INFO, first_linker_member_header.name().substr(0, 2) == "/ ", "Could not find proper first linker member");
+        Checks::check_exit(VCPKG_LINE_INFO,
+                           first_linker_member_header.name().substr(0, 2) == "/ ",
+                           "Could not find proper first linker member");
         marker.advance_by(ArchiveMemberHeader::HEADER_SIZE + first_linker_member_header.member_size());
         marker.seek_to_marker(fs);
 
         const ArchiveMemberHeader second_linker_member_header = ArchiveMemberHeader::read(fs);
-        Checks::check_exit(VCPKG_LINE_INFO, second_linker_member_header.name().substr(0, 2) == "/ ", "Could not find proper second linker member");
+        Checks::check_exit(VCPKG_LINE_INFO,
+                           second_linker_member_header.name().substr(0, 2) == "/ ",
+                           "Could not find proper second linker member");
         // The first 4 bytes contains the number of archive members
         const uint32_t archive_member_count = read_value_from_stream<uint32_t>(fs);
         const OffsetsArray offsets = OffsetsArray::read(fs, archive_member_count);
         marker.advance_by(ArchiveMemberHeader::HEADER_SIZE + second_linker_member_header.member_size());
         marker.seek_to_marker(fs);
 
-        bool hasLongnameMemberHeader = peek_value_from_stream<uint16_t>(fs) == 0x2F2F;
+        const bool hasLongnameMemberHeader = peek_value_from_stream<uint16_t>(fs) == 0x2F2F;
         if (hasLongnameMemberHeader)
         {
             const ArchiveMemberHeader longnames_member_header = ArchiveMemberHeader::read(fs);
@@ -297,8 +297,9 @@ namespace vcpkg::COFFFileReader
             marker.set_to_offset(offset + ArchiveMemberHeader::HEADER_SIZE); // Skip the header, no need to read it.
             marker.seek_to_marker(fs);
             const uint16_t first_two_bytes = peek_value_from_stream<uint16_t>(fs);
-            const bool isImportHeader = getMachineType(first_two_bytes) == MachineType::UNKNOWN;
-            const MachineType machine = isImportHeader ? ImportHeader::read(fs).machineType() : CoffFileHeader::read(fs).machineType();
+            const bool isImportHeader = to_machine_type(first_two_bytes) == MachineType::UNKNOWN;
+            const MachineType machine =
+                isImportHeader ? ImportHeader::read(fs).machine_type() : CoffFileHeader::read(fs).machine_type();
             machine_types.insert(machine);
         }
 

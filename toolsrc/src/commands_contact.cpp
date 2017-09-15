@@ -1,4 +1,5 @@
 #include "pch.h"
+
 #include "vcpkg_Commands.h"
 #include "vcpkg_System.h"
 
@@ -6,8 +7,8 @@ namespace vcpkg::Commands::Contact
 {
     const std::string& email()
     {
-        static const std::string s_email = R"(vcpkg@microsoft.com)";
-        return s_email;
+        static const std::string S_EMAIL = R"(vcpkg@microsoft.com)";
+        return S_EMAIL;
     }
 
     void perform_and_exit(const VcpkgCmdArguments& args)

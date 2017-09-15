@@ -1,5 +1,6 @@
 #pragma once
-#include <system_error>
+
+#include "vcpkg_expected.h"
 
 namespace vcpkg
 {
@@ -10,27 +11,22 @@ namespace vcpkg
         INVALID_CHARACTERS
     };
 
-    struct PackageSpecParseResultCategoryImpl final : std::error_category
+    CStringView to_string(PackageSpecParseResult ev) noexcept;
+
+    template<>
+    struct ErrorHolder<PackageSpecParseResult>
     {
-        virtual const char* name() const noexcept override;
+        ErrorHolder() : m_err(PackageSpecParseResult::SUCCESS) {}
+        ErrorHolder(PackageSpecParseResult err) : m_err(err) {}
 
-        virtual std::string message(int ev) const noexcept override;
-    };
+        constexpr bool has_error() const { return m_err != PackageSpecParseResult::SUCCESS; }
 
-    const std::error_category& package_spec_parse_result_category();
+        const PackageSpecParseResult& error() const { return m_err; }
+        PackageSpecParseResult& error() { return m_err; }
 
-    std::error_code make_error_code(PackageSpecParseResult e);
+        CStringView to_string() const { return vcpkg::to_string(m_err); }
 
-    PackageSpecParseResult to_package_spec_parse_result(int i);
-
-    PackageSpecParseResult to_package_spec_parse_result(std::error_code ec);
-}
-
-// Enable implicit conversion to std::error_code
-namespace std
-{
-    template <>
-    struct is_error_code_enum<vcpkg::PackageSpecParseResult> : ::std::true_type
-    {
+    private:
+        PackageSpecParseResult m_err;
     };
 }

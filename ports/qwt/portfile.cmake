@@ -21,6 +21,9 @@ else()
     )
 endif()
 
+# The qwt build requires zlib1.dll
+SET(ENV{PATH} "$ENV{PATH};${CURRENT_INSTALLED_DIR}/bin;${CURRENT_INSTALLED_DIR}/debug/bin")
+
 vcpkg_configure_qmake(
     SOURCE_PATH ${SOURCE_PATH}
 )
@@ -31,7 +34,7 @@ vcpkg_build_qmake()
 set(BUILD_DIR ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET})
 
 file(GLOB HEADER_FILES ${SOURCE_PATH}/src/*.h)
-file(INSTALL ${HEADER_FILES} DESTINATION ${CURRENT_PACKAGES_DIR}/include)
+file(INSTALL ${HEADER_FILES} DESTINATION ${CURRENT_PACKAGES_DIR}/include/qwt)
 
 file(INSTALL
     ${BUILD_DIR}/lib/qwt.lib

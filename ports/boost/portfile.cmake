@@ -1,28 +1,24 @@
 include(vcpkg_common_functions)
-set(SOURCE_PATH ${CURRENT_BUILDTREES_DIR}/src/boost_1_63_0)
+set(VERSION 1_65)
+set(VERSION_FULL 1_65_1)
+set(VERSION2 1.65.1)
+set(SOURCE_PATH ${CURRENT_BUILDTREES_DIR}/src/boost_${VERSION_FULL})
 
 ######################
 # Acquire and arrange sources
 ######################
 vcpkg_download_distfile(ARCHIVE_FILE
-    URLS "https://sourceforge.net/projects/boost/files/boost/1.63.0/boost_1_63_0.tar.bz2"
-    FILENAME "boost_1_63_0.tar.bz2"
-    SHA512 c915c5f5778dee49b8e9d0a40f37f90f56fb1fdb1d8ce92d97bf48bc7bc462212487badfe4bbe30b06196d1149cfb221da12ac54e97499b0d4cb6466813bb4ad
+    URLS "https://sourceforge.net/projects/boost/files/boost/${VERSION2}/boost_${VERSION_FULL}.7z" "http://dl.bintray.com/boostorg/release/${VERSION2}/source/boost_${VERSION_FULL}.7z"
+    FILENAME "boost_${VERSION_FULL}.7z"
+    SHA512 b1d9264ec74dd75c68176f5a2d2da33a2c1e3162842cc61a07ac8ed1ebb953855cece4faf72ce99b490b665e813b839e35c7fc8026f2f9cb31b106fb8bab2a9c
 )
 vcpkg_extract_source_archive(${ARCHIVE_FILE})
 
 # apply boost range hotfix
 vcpkg_download_distfile(DIFF
     URLS "https://github.com/boostorg/range/commit/e7ebe14707130cda7b72e0ae5e93b17157fdb6a2.diff"
-    FILENAME "boost-range-has_range_iterator-hotfix_e7ebe14707130cda7b72e0ae5e93b17157fdb6a2.diff"
-    SHA512 77dad42bfd9bbab2bbddf361d5b7ad3dd6f812f4294c6dd1a677bb4d0191a4fff43bca32fdd4fce05d428562abb6e38afd0fd33ca6a8b5f28481d70cd2f3dd67
-)
-
-# apply boost TLS fix for VS2017
-vcpkg_download_distfile(TLS_DIFF
-    URLS "https://github.com/boostorg/thread/commit/bd0379af57fa294df310221492da618844182658.diff"
-    FILENAME "boost-thread-on_tls_callback-bd0379af57fa294df310221492da618844182658.diff"
-    SHA512 29501de9da5d101c762c9617eb74f072ec47eb9ef0021f036545bc883cbeb09c24b2ba7f78c24fb1a5d6b1fb3d7ae1def05a75be8634fc32bde0dface571c0a8
+    FILENAME "boost-range-has_range_iterator-hotfix_e7ebe14707130cda7b72e0ae5e93b17157fdb6a2-2.diff"
+    SHA512 88392fcf092d07ee2de66d937634688eef1d7491a4e2fb0fce064b4e631813a0814455a329f9eed8b968ff205883751d51a86edecc8e355790fc8a35d6742483
 )
 
 FILE(READ "${DIFF}" content)
@@ -30,12 +26,6 @@ STRING(REGEX REPLACE "include/" "" content "${content}")
 set(DIFF2 ${CURRENT_BUILDTREES_DIR}/src/boost-range-has_range_iterator-hotfix_e7ebe14707130cda7b72e0ae5e93b17157fdb6a2.diff.fixed)
 FILE(WRITE ${DIFF2} "${content}")
 vcpkg_apply_patches(SOURCE_PATH ${SOURCE_PATH} PATCHES ${DIFF2})
-
-FILE(READ "${TLS_DIFF}" content)
-STRING(REGEX REPLACE "src/win32/" "libs/thread/src/win32/" content "${content}")
-set(TLS_DIFF2 ${CURRENT_BUILDTREES_DIR}/src/boost-thread-on_tls_callback-bd0379af57fa294df310221492da618844182658.diff.fixed)
-FILE(WRITE ${TLS_DIFF2} "${content}")
-vcpkg_apply_patches(SOURCE_PATH ${SOURCE_PATH} PATCHES ${TLS_DIFF2})
 
 ######################
 # Cleanup previous builds
@@ -73,7 +63,7 @@ file(MAKE_DIRECTORY
 if(NOT EXISTS ${SOURCE_PATH}/b2.exe)
     message(STATUS "Bootstrapping")
     vcpkg_execute_required_process(
-        COMMAND "${SOURCE_PATH}/bootstrap.bat"
+        COMMAND "${SOURCE_PATH}/bootstrap.bat" msvc
         WORKING_DIRECTORY ${SOURCE_PATH}
         LOGNAME bootstrap
     )
@@ -120,7 +110,6 @@ if(VCPKG_CMAKE_SYSTEM_NAME MATCHES "WindowsStore")
         # --without-date_time
         # --without-exception
         # --without-serialization
-        # --without-fiber
         # --without-context
         # --without-graph_parallel
         # --without-signals
@@ -141,6 +130,8 @@ if(VCPKG_CMAKE_SYSTEM_NAME MATCHES "WindowsStore")
         --without-program_options # libs\program_options\src\parsers.cpp(194): error C2065: 'environ': undeclared identifier
 
         --without-test
+        --without-fiber
+        --without-stacktrace
         --without-filesystem # libs\filesystem\src\operations.cpp(178): error C2039: 'GetEnvironmentVariableW': is not a member of '`global namespace''
         --without-thread
         --without-iostreams
@@ -180,7 +171,7 @@ set(B2_OPTIONS_DBG
     ${B2_OPTIONS}
     -sZLIB_BINARY=zlibd
     -sZLIB_LIBPATH="${CURRENT_INSTALLED_DIR}\\debug\\lib"
-    -sBZIP2_BINARY=bz2
+    -sBZIP2_BINARY=bz2d
     -sBZIP2_LIBPATH="${CURRENT_INSTALLED_DIR}\\debug\\lib"
 )
 
@@ -233,6 +224,9 @@ file(
 file(APPEND ${CURRENT_PACKAGES_DIR}/include/boost/config/user.hpp
 	"\n#define BOOST_ALL_NO_LIB\n"
 )
+file(APPEND ${CURRENT_PACKAGES_DIR}/include/boost/config/user.hpp
+    "\n#undef BOOST_ALL_DYN_LINK\n"
+)
 
 if (VCPKG_LIBRARY_LINKAGE STREQUAL dynamic)
     file(APPEND ${CURRENT_PACKAGES_DIR}/include/boost/config/user.hpp
@@ -274,6 +268,13 @@ if (VCPKG_LIBRARY_LINKAGE STREQUAL dynamic)
 endif()
 file(GLOB RELEASE_LIBS ${CURRENT_PACKAGES_DIR}/lib/*.lib)
 boost_rename_libs(RELEASE_LIBS)
+if(EXISTS ${CURRENT_PACKAGES_DIR}/lib/boost_test_exec_monitor-vc140-mt-${VERSION}.lib)
+    file(MAKE_DIRECTORY ${CURRENT_PACKAGES_DIR}/lib/manual-link)
+    file(RENAME
+        ${CURRENT_PACKAGES_DIR}/lib/boost_test_exec_monitor-vc140-mt-${VERSION}.lib
+        ${CURRENT_PACKAGES_DIR}/lib/manual-link/boost_test_exec_monitor-vc140-mt-${VERSION}.lib
+    )
+endif()
 message(STATUS "Packaging ${TARGET_TRIPLET}-rel done")
 
 message(STATUS "Packaging ${TARGET_TRIPLET}-dbg")
@@ -287,6 +288,13 @@ if (VCPKG_LIBRARY_LINKAGE STREQUAL dynamic)
 endif()
 file(GLOB DEBUG_LIBS ${CURRENT_PACKAGES_DIR}/debug/lib/*.lib)
 boost_rename_libs(DEBUG_LIBS)
+if(EXISTS ${CURRENT_PACKAGES_DIR}/debug/lib/boost_test_exec_monitor-vc140-mt-gd-${VERSION}.lib)
+    file(MAKE_DIRECTORY ${CURRENT_PACKAGES_DIR}/debug/lib/manual-link)
+    file(RENAME
+        ${CURRENT_PACKAGES_DIR}/debug/lib/boost_test_exec_monitor-vc140-mt-gd-${VERSION}.lib
+        ${CURRENT_PACKAGES_DIR}/debug/lib/manual-link/boost_test_exec_monitor-vc140-mt-gd-${VERSION}.lib
+    )
+endif()
 message(STATUS "Packaging ${TARGET_TRIPLET}-dbg done")
 
 vcpkg_copy_pdbs()

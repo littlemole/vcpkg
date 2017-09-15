@@ -1,12 +1,13 @@
 #include "pch.h"
+
 #include "MachineType.h"
 #include "vcpkg_Checks.h"
 
 namespace vcpkg
 {
-    MachineType getMachineType(const uint16_t value)
+    MachineType to_machine_type(const uint16_t value)
     {
-        MachineType t = static_cast<MachineType>(value);
+        const MachineType t = static_cast<MachineType>(value);
         switch (t)
         {
             case MachineType::UNKNOWN:
@@ -33,10 +34,8 @@ namespace vcpkg
             case MachineType::SH4:
             case MachineType::SH5:
             case MachineType::THUMB:
-            case MachineType::WCEMIPSV2:
-                return t;
-            default:
-                Checks::exit_with_message(VCPKG_LINE_INFO, "Unknown machine type code 0x%x", value);
+            case MachineType::WCEMIPSV2: return t;
+            default: Checks::exit_with_message(VCPKG_LINE_INFO, "Unknown machine type code 0x%x", value);
         }
     }
 }

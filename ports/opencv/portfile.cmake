@@ -14,6 +14,8 @@ vcpkg_extract_source_archive(${ARCHIVE})
 vcpkg_apply_patches(
     SOURCE_PATH ${SOURCE_PATH}
     PATCHES "${CMAKE_CURRENT_LIST_DIR}/opencv-installation-options.patch"
+            "${CMAKE_CURRENT_LIST_DIR}/001-fix-uwp.patch"
+            "${CMAKE_CURRENT_LIST_DIR}/002-fix-uwp.patch"
 )
 file(REMOVE_RECURSE ${SOURCE_PATH}/3rdparty/libjpeg ${SOURCE_PATH}/3rdparty/libpng ${SOURCE_PATH}/3rdparty/zlib ${SOURCE_PATH}/3rdparty/libtiff)
 
@@ -40,6 +42,7 @@ vcpkg_configure_cmake(
         -DBUILD_PNG=OFF
         -DBUILD_opencv_python2=OFF
         -DBUILD_opencv_python3=OFF
+        -DBUILD_opencv_flann=ON
         -DBUILD_opencv_apps=OFF
         -DBUILD_DOCS=OFF
         -DBUILD_EXAMPLES=OFF
@@ -54,7 +57,12 @@ vcpkg_configure_cmake(
         -DOPENCV_OTHER_INSTALL_PATH=share/opencv
         -DINSTALL_LICENSE=OFF
         -DWITH_CUDA=OFF
-        #-DOPENCV_EXTRA_MODULES_PATH=${CONTRIB_SOURCE_PATH}/modules # uncomment the following 3 lines to build opencv_contrib modules
+        -DWITH_CUBLAS=OFF
+        -DWITH_OPENCLAMDBLAS=OFF
+        -DWITH_LAPACK=OFF
+
+        # uncomment the following 3 lines to build opencv_contrib modules
+        #-DOPENCV_EXTRA_MODULES_PATH=${CONTRIB_SOURCE_PATH}/modules
         #-DBUILD_PROTOBUF=OFF
         #-DUPDATE_PROTO_FILES=ON
     OPTIONS_DEBUG

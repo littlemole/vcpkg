@@ -1,3 +1,38 @@
+## # vcpkg_find_acquire_program
+##
+## Download or find a well-known tool.
+##
+## ## Usage
+## ```cmake
+## vcpkg_find_acquire_program(<VAR>)
+## ```
+## ## Parameters
+## ### VAR
+## This variable specifies both the program to be acquired as well as the out parameter that will be set to the path of the program executable.
+##
+## ## Notes
+## The current list of programs includes:
+##
+## - 7Z
+## - BISON
+## - FLEX
+## - GASPREPROCESSOR
+## - PERL
+## - PYTHON2
+## - PYTHON3
+## - JOM
+## - MESON
+## - NASM
+## - NINJA
+## - YASM
+##
+## Note that msys2 has a dedicated helper function: [`vcpkg_acquire_msys`](vcpkg_acquire_msys.md).
+##
+## ## Examples
+##
+## * [ffmpeg](https://github.com/Microsoft/vcpkg/blob/master/ports/ffmpeg/portfile.cmake)
+## * [openssl](https://github.com/Microsoft/vcpkg/blob/master/ports/openssl/portfile.cmake)
+## * [qt5](https://github.com/Microsoft/vcpkg/blob/master/ports/qt5/portfile.cmake)
 function(vcpkg_find_acquire_program VAR)
   if(${VAR} AND NOT ${VAR} MATCHES "-NOTFOUND")
     return()
@@ -32,11 +67,11 @@ function(vcpkg_find_acquire_program VAR)
   elseif(VAR MATCHES "PYTHON3")
     set(PROGNAME python)
     set(PATHS ${DOWNLOADS}/tools/python)
-    set(URL "https://www.python.org/ftp/python/3.5.3/python-3.5.3-embed-win32.zip")
-    set(ARCHIVE "python-3.5.3-embed-win32.zip")
-    set(HASH c8cfdc09d052dc27e4380e8e4bf0d32a4c0def7e03896c1fa6cabc26dde78bb74dbb04e3673cc36e3e307d65a1ef284d69174f0cc80008c83bc6178f192ac5cf)
+    set(URL "https://www.python.org/ftp/python/3.5.4/python-3.5.4-embed-win32.zip")
+    set(ARCHIVE "python-3.5.4-embed-win32.zip")
+    set(HASH b5240fdc95088c2d7f65d2dd598650f8dd106b49589d94156bd4a078b108c6cabbe7a38ef73e2b2cf00e8312a93d2e587eac2c54ce85540d3c7a26cc60013156)
   elseif(VAR MATCHES "PYTHON2")
-    find_program(PYTHON2 NAMES python2 python PATHS C:/python27 ENV PYTHON)
+    find_program(PYTHON2 NAMES python2 python PATHS C:/python27 c:/Python27amd64 ENV PYTHON)
     if(NOT PYTHON2 MATCHES "NOTFOUND")
         execute_process(
             COMMAND ${PYTHON2} --version
@@ -56,6 +91,12 @@ function(vcpkg_find_acquire_program VAR)
         "    https://www.python.org/ftp/python/2.7.13/python-2.7.13.msi\n"
         )
     endif()
+  elseif(VAR MATCHES "RUBY")
+    set(PROGNAME "ruby")
+    set(PATHS ${DOWNLOADS}/tools/ruby/rubyinstaller-2.4.1-1-x86/bin)
+    set(URL https://github.com/oneclick/rubyinstaller2/releases/download/2.4.1-1/rubyinstaller-2.4.1-1-x86.7z)
+    set(ARCHIVE rubyinstaller-2.4.1-1-x86.7z)
+    set(HASH b51112e9b58cfcbe8cec0607e8a16fff6a943d9b4e31b2a7fbf5df5f83f050bf0a4812d3dd6000ff21a3d5fd219cd0a309c58ac1c1db950a9b0072405e4b70f5)
   elseif(VAR MATCHES "JOM")
     set(PROGNAME jom)
     set(SUBDIR "jom-1.1.2")
@@ -80,10 +121,37 @@ function(vcpkg_find_acquire_program VAR)
     set(PROGNAME meson)
     set(REQUIRED_INTERPRETER PYTHON3)
     set(SCRIPTNAME meson.py)
-    set(PATHS ${DOWNLOADS}/tools/meson/meson-0.38.1)
-    set(URL "https://github.com/mesonbuild/meson/archive/0.38.1.zip")
-    set(ARCHIVE "meson-0.38.1.zip")
-    set(HASH 89642b1d976af7e29e9ca2b1a378510ce286ebd90a8234e898f3dd9dd7151538fdfc61fba770681605dad843b77b344fee94f992f18328655669d5f603c7fee5)
+    set(PATHS ${DOWNLOADS}/tools/meson/meson-0.40.1)
+    set(URL "https://github.com/mesonbuild/meson/archive/0.40.1.zip")
+    set(ARCHIVE "meson-0.40.1.zip")
+    set(HASH 4c1d07f32d527859f762c34de74d31d569573fc833335ab9652ed38d1f9e64b49869e826527c28a6a07cb8e594fd5c647b34aa95e626236a2707f75df0a2d435)
+  elseif(VAR MATCHES "FLEX")
+    set(PROGNAME win_flex)
+    set(PATHS ${DOWNLOADS}/tools/win_flex)
+    set(URL "https://sourceforge.net/projects/winflexbison/files/win_flex_bison-2.5.9.zip/download")
+    set(ARCHIVE "win_flex_bison-2.5.9.zip")
+    set(HASH 9580f0e46893670a011645947c1becda69909a41a38bb4197fe33bd1ab7719da6b80e1be316f269e1a4759286870d49a9b07ef83afc4bac33232bd348e0bc814)
+  elseif(VAR MATCHES "BISON")
+    set(PROGNAME win_bison)
+    set(PATHS ${DOWNLOADS}/tools/win_bison)
+    set(URL "https://sourceforge.net/projects/winflexbison/files/win_flex_bison-2.5.9.zip/download")
+    set(ARCHIVE "win_flex_bison-2.5.9.zip")
+    set(HASH 9580f0e46893670a011645947c1becda69909a41a38bb4197fe33bd1ab7719da6b80e1be316f269e1a4759286870d49a9b07ef83afc4bac33232bd348e0bc814)
+  elseif(VAR MATCHES "GPERF")
+    set(PROGNAME gperf)
+    set(PATHS ${DOWNLOADS}/tools/gperf/bin)
+    set(URL "https://sourceforge.net/projects/gnuwin32/files/gperf/3.0.1/gperf-3.0.1-bin.zip/download")
+    set(ARCHIVE "gperf-3.0.1-bin.zip")
+    set(HASH 3f2d3418304390ecd729b85f65240a9e4d204b218345f82ea466ca3d7467789f43d0d2129fcffc18eaad3513f49963e79775b10cc223979540fa2e502fe7d4d9)
+  elseif(VAR MATCHES "GASPREPROCESSOR")
+    set(NOEXTRACT true)
+    set(PROGNAME gas-preprocessor)
+    set(REQUIRED_INTERPRETER PERL)
+    set(SCRIPTNAME "gas-preprocessor.pl")
+    set(PATHS ${DOWNLOADS}/tools/gas-preprocessor)
+    set(URL "https://raw.githubusercontent.com/FFmpeg/gas-preprocessor/36bacb4cba27003c572e5bf7a9c4dfe3c9a8d40d/gas-preprocessor.pl")
+    set(ARCHIVE "gas-preprocessor.pl")
+    set(HASH a25caadccd1457a0fd2abb5a0da9aca1713b2c351d76daf87a4141e52021f51aa09e95a62942c6f0764f79cc1fa65bf71584955b09e62ee7da067b5c82baf6b3)
   else()
     message(FATAL "unknown tool ${VAR} -- unable to acquire.")
   endif()
@@ -93,8 +161,8 @@ function(vcpkg_find_acquire_program VAR)
       find_program(${VAR} ${PROGNAME} PATHS ${PATHS})
     else()
       vcpkg_find_acquire_program(${REQUIRED_INTERPRETER})
-      find_file(SCIRPT ${SCRIPTNAME} PATHS ${PATHS})
-      set(${VAR} ${${REQUIRED_INTERPRETER}} ${SCIRPT})
+      find_file(SCRIPT ${SCRIPTNAME} PATHS ${PATHS})
+      set(${VAR} ${${REQUIRED_INTERPRETER}} ${SCRIPT})
     endif()
   endmacro()
 

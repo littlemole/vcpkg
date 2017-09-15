@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
-project(gdk-pixbuf)
+project(gdk-pixbuf C)
 
 set(GDK_PIXBUF_LIB_SUFFIX 2.0)
 set(GDK_PIXBUF_DLL_SUFFIX 2)
@@ -34,6 +34,7 @@ add_library(gdk-pixbuf
     gdk-pixbuf/gdk-pixbuf-util.c
     gdk-pixbuf/gdk-pixdata.c
     gdk-pixbuf/gdk-pixbuf-enum-types.c
+    gdk-pixbuf/gdk-pixbuf-marshal.c
     gdk-pixbuf/io-ani.c
     gdk-pixbuf/io-ani-animation.c
     gdk-pixbuf/io-icns.c

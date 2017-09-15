@@ -1,9 +1,9 @@
 #pragma once
-#include <vector>
 #include "MachineType.h"
 #include "filesystem_fs.h"
+#include <vector>
 
-namespace vcpkg::COFFFileReader
+namespace vcpkg::CoffFileReader
 {
     struct DllInfo
     {

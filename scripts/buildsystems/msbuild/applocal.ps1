@@ -5,6 +5,12 @@ $g_searched = @{}
 # Note: installedDir is actually the bin\ directory.
 $g_install_root = Split-Path $installedDir -parent
 
+# Ensure we create the copied files log, even if we don't end up copying any files
+if ($copiedFilesLog)
+{
+    Set-Content -Path $copiedFilesLog -Value "" -Encoding Ascii
+}
+
 # Note: this function signature is depended upon by the qtdeploy.ps1 script introduced in 5.7.1-7
 function deployBinary([string]$targetBinaryDir, [string]$SourceDir, [string]$targetBinaryName) {
     if (Test-Path "$targetBinaryDir\$targetBinaryName") {
@@ -43,6 +49,9 @@ function resolve([string]$targetBinary) {
         if (Test-Path "$installedDir\$_") {
             deployBinary $targetBinaryDir $installedDir "$_"
             if (Test-Path function:\deployPluginsIfQt) { deployPluginsIfQt $targetBinaryDir "$g_install_root\plugins" "$_" }
+            resolve "$targetBinaryDir\$_"
+        } elseif (Test-Path "$targetBinaryDir\$_") {
+            Write-Verbose "  ${_}: $_ not found in vcpkg; locally deployed"
             resolve "$targetBinaryDir\$_"
         } else {
             Write-Verbose "  ${_}: $installedDir\$_ not found"

@@ -141,30 +141,28 @@
     <ClInclude Include="..\include\lazy.h" />
     <ClInclude Include="..\include\LineInfo.h" />
     <ClInclude Include="..\include\ParagraphParseResult.h" />
-    <ClInclude Include="..\include\PostBuildLint_BuildInfo.h" />
-    <ClInclude Include="..\include\PostBuildLint_BuildPolicies.h" />
+    <ClInclude Include="..\include\PostBuildLint_BuildType.h" />
+    <ClInclude Include="..\include\Span.h" />
+    <ClInclude Include="..\include\vcpkg_Build.h" />
     <ClInclude Include="..\include\coff_file_reader.h" />
     <ClInclude Include="..\include\vcpkg_expected.h" />
     <ClInclude Include="..\include\filesystem_fs.h" />
     <ClInclude Include="..\include\SortedVector.h" />
     <ClInclude Include="..\include\MachineType.h" />
     <ClInclude Include="..\include\metrics.h" />
-    <ClInclude Include="..\include\OptBool.h" />
     <ClInclude Include="..\include\PackageSpec.h" />
     <ClInclude Include="..\include\PackageSpecParseResult.h" />
     <ClInclude Include="..\include\Paragraphs.h" />
     <ClInclude Include="..\include\pch.h" />
     <ClInclude Include="..\include\PostBuildLint.h" />
-    <ClInclude Include="..\include\PostBuildLint_BuildType.h" />
-    <ClInclude Include="..\include\PostBuildLint_ConfigurationType.h" />
-    <ClInclude Include="..\include\PostBuildLint_LinkageType.h" />
     <ClInclude Include="..\include\SourceParagraph.h" />
     <ClInclude Include="..\include\StatusParagraph.h" />
     <ClInclude Include="..\include\StatusParagraphs.h" />
     <ClInclude Include="..\include\vcpkg_Chrono.h" />
     <ClInclude Include="..\include\triplet.h" />
     <ClInclude Include="..\include\vcpkglib.h" />
-    <ClInclude Include="..\include\vcpkglib_helpers.h" />
+    <ClInclude Include="..\include\vcpkg_GlobalState.h" />
+    <ClInclude Include="..\include\vcpkg_Parse.h" />
     <ClInclude Include="..\include\vcpkg_Checks.h" />
     <ClInclude Include="..\include\VcpkgCmdArguments.h" />
     <ClInclude Include="..\include\vcpkg_Commands.h" />
@@ -182,15 +180,15 @@
     <ClInclude Include="..\include\VersionT.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\include\VersionT.cpp" />
     <ClCompile Include="..\src\BinaryParagraph.cpp" />
     <ClCompile Include="..\src\commands_ci.cpp" />
     <ClCompile Include="..\src\commands_depends.cpp" />
     <ClCompile Include="..\src\commands_env.cpp" />
+    <ClCompile Include="..\src\commands_export.cpp" />
     <ClCompile Include="..\src\LineInfo.cpp" />
     <ClCompile Include="..\src\ParagraphParseResult.cpp" />
-    <ClCompile Include="..\src\PostBuildLint_BuildInfo.cpp" />
-    <ClCompile Include="..\src\PostBuildLint_BuildPolicies.cpp" />
+    <ClCompile Include="..\src\vcpkg_Build.cpp" />
+    <ClCompile Include="..\src\vcpkg_Build_BuildPolicy.cpp" />
     <ClCompile Include="..\src\coff_file_reader.cpp" />
     <ClCompile Include="..\src\commands_available_commands.cpp" />
     <ClCompile Include="..\src\commands_build.cpp" />
@@ -213,7 +211,6 @@
     <ClCompile Include="..\src\commands_version.cpp" />
     <ClCompile Include="..\src\MachineType.cpp" />
     <ClCompile Include="..\src\metrics.cpp" />
-    <ClCompile Include="..\src\OptBool.cpp" />
     <ClCompile Include="..\src\pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
@@ -221,8 +218,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\src\PostBuildLint.cpp" />
-    <ClCompile Include="..\src\PostBuildLint_ConfigurationType.cpp" />
-    <ClCompile Include="..\src\PostBuildLint_LinkageType.cpp" />
     <ClCompile Include="..\src\PostBuildLint_BuildType.cpp" />
     <ClCompile Include="..\src\vcpkg_Chrono.cpp" />
     <ClCompile Include="..\src\vcpkglib.cpp" />
@@ -233,7 +228,8 @@
     <ClCompile Include="..\src\StatusParagraph.cpp" />
     <ClCompile Include="..\src\StatusParagraphs.cpp" />
     <ClCompile Include="..\src\triplet.cpp" />
-    <ClCompile Include="..\src\vcpkglib_helpers.cpp" />
+    <ClCompile Include="..\src\vcpkg_GlobalState.cpp" />
+    <ClCompile Include="..\src\vcpkg_Parse.cpp" />
     <ClCompile Include="..\src\vcpkg_Checks.cpp" />
     <ClCompile Include="..\src\VcpkgCmdArguments.cpp" />
     <ClCompile Include="..\src\vcpkg_Dependencies.cpp" />
@@ -243,6 +239,7 @@
     <ClCompile Include="..\src\VcpkgPaths.cpp" />
     <ClCompile Include="..\src\vcpkg_Strings.cpp" />
     <ClCompile Include="..\src\vcpkg_System.cpp" />
+    <ClCompile Include="..\src\VersionT.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

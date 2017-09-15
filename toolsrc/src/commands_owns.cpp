@@ -1,4 +1,5 @@
 #include "pch.h"
+
 #include "vcpkg_Commands.h"
 #include "vcpkg_System.h"
 #include "vcpkglib.h"
@@ -24,8 +25,9 @@ namespace vcpkg::Commands::Owns
 
     void perform_and_exit(const VcpkgCmdArguments& args, const VcpkgPaths& paths)
     {
-        static const std::string example = Strings::format("The argument should be a pattern to search for. %s", Commands::Help::create_example_string("owns zlib.dll"));
-        args.check_exact_arg_count(1, example);
+        static const std::string EXAMPLE = Strings::format("The argument should be a pattern to search for. %s",
+                                                           Commands::Help::create_example_string("owns zlib.dll"));
+        args.check_exact_arg_count(1, EXAMPLE);
         args.check_and_get_optional_command_arguments({});
 
         StatusParagraphs status_db = database_load_check(paths);
