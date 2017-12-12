@@ -17,8 +17,8 @@ set(ENV{PATH} "$ENV{PATH};${PYTHON3_DIR}")
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO facebook/folly
-    REF v2017.07.17.01
-    SHA512 1529941ebcc9ee3502e4ab07463bb5bc6a397259cbbf1817ac64fd186fd4cd964ffe8b473fe6a432e80632ffa553106a0d3fe2962e860eb409e3391029ed5584
+    REF v2017.11.27.00
+    SHA512 738bb00047a7cbd807f2dccd64031763df80bbebca73f1ae9500b750dcad156dde84e47f4eda7af1bcd7abfae10c973da47515f2e111929979d1637869cf06ee
     HEAD_REF master
 )
 
@@ -38,7 +38,7 @@ vcpkg_configure_cmake(
 # Folly runs built executables during the build, so they need access to the installed DLLs.
 set(ENV{PATH} "$ENV{PATH};${CURRENT_INSTALLED_DIR}/bin;${CURRENT_INSTALLED_DIR}/debug/bin")
 
-vcpkg_install_cmake(MSVC_64_TOOLSET)
+vcpkg_install_cmake()
 
 vcpkg_copy_pdbs()
 

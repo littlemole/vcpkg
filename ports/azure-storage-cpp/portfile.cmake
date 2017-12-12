@@ -1,3 +1,7 @@
+if(VCPKG_CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
+    message(FATAL_ERROR "${PORT} does not currently support UWP")
+endif()
+
 include(vcpkg_common_functions)
 
 vcpkg_from_github(
@@ -13,6 +17,7 @@ vcpkg_apply_patches(
     PATCHES
         ${CMAKE_CURRENT_LIST_DIR}/cmake.patch
         ${CMAKE_CURRENT_LIST_DIR}/static-builds.patch
+        ${CMAKE_CURRENT_LIST_DIR}/support-cpprest-findpackage.patch
 )
 
 vcpkg_configure_cmake(

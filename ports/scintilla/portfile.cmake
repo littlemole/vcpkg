@@ -1,125 +1,62 @@
 # Common Ambient Variables:
-#   VCPKG_ROOT_DIR = <C:\path\to\current\vcpkg>
-#   TARGET_TRIPLET is the current triplet (x86-windows, etc)
-#   PORT is the current port name (zlib, etc)
-#   CURRENT_BUILDTREES_DIR = ${VCPKG_ROOT_DIR}\buildtrees\${PORT}
-#   CURRENT_PACKAGES_DIR  = ${VCPKG_ROOT_DIR}\packages\${PORT}_${TARGET_TRIPLET}
+#   CURRENT_BUILDTREES_DIR    = ${VCPKG_ROOT_DIR}\buildtrees\${PORT}
+#   CURRENT_PACKAGES_DIR      = ${VCPKG_ROOT_DIR}\packages\${PORT}_${TARGET_TRIPLET}
+#   CURRENT_PORT_DIR          = ${VCPKG_ROOT_DIR}\ports\${PORT}
+#   PORT                      = current port name (zlib, etc)
+#   TARGET_TRIPLET            = current triplet (x86-windows, x64-windows-static, etc)
+#   VCPKG_CRT_LINKAGE         = C runtime linkage type (static, dynamic)
+#   VCPKG_LIBRARY_LINKAGE     = target library linkage type (static, dynamic)
+#   VCPKG_ROOT_DIR            = <C:\path\to\current\vcpkg>
+#   VCPKG_TARGET_ARCHITECTURE = target architecture (x64, x86, arm)
 #
 
 include(vcpkg_common_functions)
 set(SOURCE_PATH ${CURRENT_BUILDTREES_DIR}/src/scintilla)
-
-message(STATUS "+++ ${SOURCE_PATH}")
-
 vcpkg_download_distfile(ARCHIVE
-    URLS "http://www.scintilla.org/scintilla374.tgz"
-    FILENAME "scintilla-3.7.4.tgz"
-    SHA512 856750ce7e4252d00ca1a1d76754afae27cbe24a2a32ecca67e87eb90f2c4d88f5f485f5331e6294fdd43310966af2420f8d3cd6529fe9665892105e034d3e81
+    URLS "http://www.scintilla.org/scintilla376.zip"
+    FILENAME "scintilla376.zip"
+    SHA512 618a50405eede3277d7696ac58122aeeb490d10ae392c60c7f78baaa96c965a8e1a599948e0ebd61bed7f75894b01bdf4574a0e5d0e20996bfdfb2e1bdb33203
 )
 vcpkg_extract_source_archive(${ARCHIVE})
 
-file(COPY
-${CURRENT_BUILDTREES_DIR}/src/scintilla/
-DESTINATION ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel)
-
-file(COPY
-${CMAKE_CURRENT_LIST_DIR}/scintilla.mak
-DESTINATION ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/win32)
-
-file(COPY
-${CURRENT_BUILDTREES_DIR}/src/scintilla/
-DESTINATION ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-dbg)
-
-file(COPY
-${CMAKE_CURRENT_LIST_DIR}/scintilla.mak
-DESTINATION ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-dbg/win32)
-
-message(STATUS "+++ Build ${TARGET_TRIPLET}")
-
-if(TARGET_TRIPLET MATCHES "x86-windows-static")
-    set(ARCH "x86")
-    set(STATIC_BUILD "1")
-elseif(TARGET_TRIPLET MATCHES "x64-windows-static")
-    set(ARCH "x64")
-    set(STATIC_BUILD "1")
-elseif(TARGET_TRIPLET MATCHES "x86-windows")
-    set(ARCH "x86")
-    set(TARGET "dll")
-elseif(TARGET_TRIPLET MATCHES "x64-windows")
-    set(ARCH "x64")
-    set(TARGET "dll")
+if(TRIPLET_SYSTEM_ARCH MATCHES "x86")
+  set(BUILD_ARCH "Win32")
 else()
-    message(FATAL_ERROR "Unsupported target triplet: ${TARGET_TRIPLET}")
+  set(BUILD_ARCH ${TRIPLET_SYSTEM_ARCH})
 endif()
 
-
-message(STATUS "+++ Build ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET} ${SCINTILLA_MAKE} RELEASE")
-
-vcpkg_execute_required_process(
-    COMMAND nmake ARCH=${ARCH} TARGET=${TARGET} MODE=release /E /P /F scintilla.mak  
-    WORKING_DIRECTORY ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/Win32
-    LOGNAME build-${TARGET_TRIPLET}-rel
+vcpkg_build_msbuild(
+     PROJECT_PATH ${SOURCE_PATH}/Win32/SciLexer.vcxproj
+	 PLATFORM ${MSBUILD_PLATFORM}
 )
 
-file(COPY
-${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/bin/SciLexer.lib
-DESTINATION ${CURRENT_PACKAGES_DIR}/lib)
+# Handle headers
+file(INSTALL ${SOURCE_PATH}/include/ILexer.h DESTINATION ${CURRENT_PACKAGES_DIR}/include)
+file(INSTALL ${SOURCE_PATH}/include/Sci_Position.h DESTINATION ${CURRENT_PACKAGES_DIR}/include)
+file(INSTALL ${SOURCE_PATH}/include/SciLexer.h DESTINATION ${CURRENT_PACKAGES_DIR}/include)
+file(INSTALL ${SOURCE_PATH}/include/Scintilla.h DESTINATION ${CURRENT_PACKAGES_DIR}/include)
 
-file(COPY
-${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/bin/Scintilla.lib
-DESTINATION ${CURRENT_PACKAGES_DIR}/lib)
-
-if(VCPKG_LIBRARY_LINKAGE STREQUAL dynamic)
-
-file(COPY
-${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/bin/SciLexer.dll
-DESTINATION ${CURRENT_PACKAGES_DIR}/bin)
-
-file(COPY
-${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/bin/Scintilla.dll
-DESTINATION ${CURRENT_PACKAGES_DIR}/bin)
-
+# Handle libraries
+if(BUILD_ARCH STREQUAL "Win32")
+  set(BUILD_DIR_DEBUG "/Debug")
+  set(BUILD_DIR_RELEASE "/Release")
+else()
+  set(BUILD_DIR_DEBUG "${BUILD_ARCH}/Debug")
+  set(BUILD_DIR_RELEASE "${BUILD_ARCH}/Release")
 endif()
 
-
-
-message(STATUS "+++ Build ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET} ${SCINTILLA_MAKE} DEBUG")
-
-vcpkg_execute_required_process(
-    COMMAND nmake ARCH=${ARCH} TARGET=${TARGET} MODE=debug DEBUG=1 /E /P /F scintilla.mak  
-    WORKING_DIRECTORY ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-dbg/Win32
-    LOGNAME build-${TARGET_TRIPLET}-dbg
-)
-
-message(STATUS "+++ DONE ${TARGET_TRIPLET}-rel")
-
-file(COPY
-${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-dbg/bin/SciLexer.lib
-DESTINATION ${CURRENT_PACKAGES_DIR}/debug/lib)
-
-file(COPY
-${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-dbg/bin/Scintilla.lib
-DESTINATION ${CURRENT_PACKAGES_DIR}/debug/lib)
-
-if(VCPKG_LIBRARY_LINKAGE STREQUAL dynamic)
-
-file(COPY
-${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-dbg/bin/SciLexer.dll
-DESTINATION ${CURRENT_PACKAGES_DIR}/debug/bin)
-
-file(COPY
-${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-dbg/bin/Scintilla.dll
-DESTINATION ${CURRENT_PACKAGES_DIR}/debug/bin)
-
+if(VCPKG_LIBRARY_LINKAGE MATCHES "dynamic")
+  file(INSTALL ${SOURCE_PATH}/win32/${BUILD_DIR_RELEASE}/SciLexer.dll  DESTINATION ${CURRENT_PACKAGES_DIR}/bin)
+  file(INSTALL ${SOURCE_PATH}/win32/${BUILD_DIR_DEBUG}/SciLexer.dll  DESTINATION ${CURRENT_PACKAGES_DIR}/debug/bin)
 endif()
+file(INSTALL ${SOURCE_PATH}/win32/${BUILD_DIR_RELEASE}/SciLexer.lib  DESTINATION ${CURRENT_PACKAGES_DIR}/lib)
+file(INSTALL ${SOURCE_PATH}/win32/${BUILD_DIR_DEBUG}/SciLexer.lib  DESTINATION ${CURRENT_PACKAGES_DIR}/debug/lib)
 
-file(COPY
-${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/include
-DESTINATION ${CURRENT_PACKAGES_DIR}/include)
+# Handle PDBs
 
-file(RENAME ${CURRENT_PACKAGES_DIR}/include/include ${CURRENT_PACKAGES_DIR}/include/scintilla)
-
+file(INSTALL ${SOURCE_PATH}/win32/${BUILD_DIR_RELEASE}/SciLexer.pdb  DESTINATION ${CURRENT_PACKAGES_DIR}/bin)
+file(INSTALL ${SOURCE_PATH}/win32/${BUILD_DIR_DEBUG}/SciLexer.pdb  DESTINATION ${CURRENT_PACKAGES_DIR}/debug/bin)
 
 # Handle copyright
-file(COPY ${SOURCE_PATH}/LICENSE.TXT DESTINATION ${CURRENT_PACKAGES_DIR}/share/scintilla/)
-file(RENAME ${CURRENT_PACKAGES_DIR}/share/scintilla/LICENSE.TXT ${CURRENT_PACKAGES_DIR}/share/scintilla/copyright)
+file(INSTALL ${SOURCE_PATH}/License.txt DESTINATION ${CURRENT_PACKAGES_DIR}/share/scintilla RENAME copyright)
+>>>>>>> origin/master

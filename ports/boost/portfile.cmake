@@ -25,7 +25,8 @@ FILE(READ "${DIFF}" content)
 STRING(REGEX REPLACE "include/" "" content "${content}")
 set(DIFF2 ${CURRENT_BUILDTREES_DIR}/src/boost-range-has_range_iterator-hotfix_e7ebe14707130cda7b72e0ae5e93b17157fdb6a2.diff.fixed)
 FILE(WRITE ${DIFF2} "${content}")
-vcpkg_apply_patches(SOURCE_PATH ${SOURCE_PATH} PATCHES ${DIFF2})
+vcpkg_apply_patches(SOURCE_PATH ${SOURCE_PATH} PATCHES ${DIFF2}
+                                                       ${CMAKE_CURRENT_LIST_DIR}/0001-Fix-boost-ICU-support.patch)
 
 ######################
 # Cleanup previous builds
@@ -76,19 +77,37 @@ message(STATUS "Bootstrapping done")
 set(B2_OPTIONS
     -sZLIB_INCLUDE="${CURRENT_INSTALLED_DIR}\\include"
     -sBZIP2_INCLUDE="${CURRENT_INSTALLED_DIR}\\include"
+    -sICU_PATH="${CURRENT_INSTALLED_DIR}"
     -j$ENV{NUMBER_OF_PROCESSORS}
     --debug-configuration
+    --ignore-site-config
     --hash
     -q
 
-    --without-python
     threading=multi
 )
 
+# Add build type specific options
+set(B2_OPTIONS_DBG
+    -sZLIB_BINARY=zlibd
+    -sZLIB_LIBPATH="${CURRENT_INSTALLED_DIR}\\debug\\lib"
+    -sBZIP2_BINARY=bz2d
+    -sBZIP2_LIBPATH="${CURRENT_INSTALLED_DIR}\\debug\\lib"
+)
+
+set(B2_OPTIONS_REL
+    -sZLIB_BINARY=zlib
+    -sZLIB_LIBPATH="${CURRENT_INSTALLED_DIR}\\lib"
+    -sBZIP2_BINARY=bz2
+    -sBZIP2_LIBPATH="${CURRENT_INSTALLED_DIR}\\lib"
+)
+
+set(LIB_RUNTIME_LINK "shared")
 if (VCPKG_CRT_LINKAGE STREQUAL dynamic)
     list(APPEND B2_OPTIONS runtime-link=shared)
 else()
     list(APPEND B2_OPTIONS runtime-link=static)
+    set(LIB_RUNTIME_LINK "static")
 endif()
 
 if (VCPKG_LIBRARY_LINKAGE STREQUAL dynamic)
@@ -100,6 +119,30 @@ endif()
 if(TRIPLET_SYSTEM_ARCH MATCHES "x64")
     list(APPEND B2_OPTIONS address-model=64)
 endif()
+
+if("python" IN_LIST FEATURES)
+    # Find Python. Can't use find_package here, but we already know where everything is
+    file(GLOB PYTHON_INCLUDE_PATH "${CURRENT_INSTALLED_DIR}/include/python[0-9.]*")
+    set(PYTHONLIBS_RELEASE "${CURRENT_INSTALLED_DIR}/lib")
+    set(PYTHONLIBS_DEBUG "${CURRENT_INSTALLED_DIR}/debug/lib")
+    string(REGEX REPLACE ".*python([0-9\.]+)$" "\\1" PYTHON_VERSION ${PYTHON_INCLUDE_PATH})
+    list(APPEND B2_OPTIONS_DBG python-debugging=on)
+else()
+    list(APPEND B2_OPTIONS --without-python)
+endif()
+
+if("locale-icu" IN_LIST FEATURES)
+    list(APPEND B2_OPTIONS boost.locale.icu=on)
+else()
+    list(APPEND B2_OPTIONS boost.locale.icu=off)
+endif()
+
+if("regex-icu" IN_LIST FEATURES)
+    list(APPEND B2_OPTIONS --enable-icu)
+else()
+    list(APPEND B2_OPTIONS --disable-icu)
+endif()
+
 
 if(VCPKG_CMAKE_SYSTEM_NAME MATCHES "WindowsStore")
     list(APPEND B2_OPTIONS
@@ -136,6 +179,7 @@ if(VCPKG_CMAKE_SYSTEM_NAME MATCHES "WindowsStore")
         --without-thread
         --without-iostreams
         --without-container
+        --without-python
     )
     if(VCPKG_PLATFORM_TOOLSET MATCHES "v141")
         find_path(PATH_TO_CL cl.exe)
@@ -166,53 +210,50 @@ else()
     message(FATAL_ERROR "Unsupported value for VCPKG_PLATFORM_TOOLSET: '${VCPKG_PLATFORM_TOOLSET}'")
 endif()
 
-# Add build type specific options
 set(B2_OPTIONS_DBG
     ${B2_OPTIONS}
-    -sZLIB_BINARY=zlibd
-    -sZLIB_LIBPATH="${CURRENT_INSTALLED_DIR}\\debug\\lib"
-    -sBZIP2_BINARY=bz2d
-    -sBZIP2_LIBPATH="${CURRENT_INSTALLED_DIR}\\debug\\lib"
+    ${B2_OPTIONS_DBG}
 )
 
 set(B2_OPTIONS_REL
     ${B2_OPTIONS}
-    -sZLIB_BINARY=zlib
-    -sZLIB_LIBPATH="${CURRENT_INSTALLED_DIR}\\lib"
-    -sBZIP2_BINARY=bz2
-    -sBZIP2_LIBPATH="${CURRENT_INSTALLED_DIR}\\lib"
+    ${B2_OPTIONS_REL}
 )
 
 ######################
 # Perform build + Package
 ######################
-message(STATUS "Building ${TARGET_TRIPLET}-rel")
-set(ENV{BOOST_BUILD_PATH} ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel)
-vcpkg_execute_required_process_repeat(
-    COUNT 2
-    COMMAND "${SOURCE_PATH}/b2.exe"
-        --stagedir=${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/stage
-        --build-dir=${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel
-        ${B2_OPTIONS_REL}
-        variant=release
-        debug-symbols=on
-    WORKING_DIRECTORY ${SOURCE_PATH}
-    LOGNAME build-${TARGET_TRIPLET}-rel
-)
-message(STATUS "Building ${TARGET_TRIPLET}-rel done")
-message(STATUS "Building ${TARGET_TRIPLET}-dbg")
-set(ENV{BOOST_BUILD_PATH} ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-dbg)
-vcpkg_execute_required_process_repeat(
-    COUNT 2
-    COMMAND "${SOURCE_PATH}/b2.exe"
-        --stagedir=${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-dbg/stage
-        --build-dir=${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-dbg
-        ${B2_OPTIONS_DBG}
-        variant=debug
-    WORKING_DIRECTORY ${SOURCE_PATH}
-    LOGNAME build-${TARGET_TRIPLET}-dbg
-)
-message(STATUS "Building ${TARGET_TRIPLET}-dbg done")
+if(NOT DEFINED VCPKG_BUILD_TYPE OR VCPKG_BUILD_TYPE STREQUAL "release")
+    message(STATUS "Building ${TARGET_TRIPLET}-rel")
+    set(ENV{BOOST_BUILD_PATH} ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel)
+    vcpkg_execute_required_process_repeat(
+        COUNT 2
+        COMMAND "${SOURCE_PATH}/b2.exe"
+            --stagedir=${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/stage
+            --build-dir=${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel
+            ${B2_OPTIONS_REL}
+            variant=release
+            debug-symbols=on
+        WORKING_DIRECTORY ${SOURCE_PATH}
+        LOGNAME build-${TARGET_TRIPLET}-rel
+    )
+    message(STATUS "Building ${TARGET_TRIPLET}-rel done")
+endif()
+if(NOT DEFINED VCPKG_BUILD_TYPE OR VCPKG_BUILD_TYPE STREQUAL "debug")
+    message(STATUS "Building ${TARGET_TRIPLET}-dbg")
+    set(ENV{BOOST_BUILD_PATH} ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-dbg)
+    vcpkg_execute_required_process_repeat(
+        COUNT 2
+        COMMAND "${SOURCE_PATH}/b2.exe"
+            --stagedir=${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-dbg/stage
+            --build-dir=${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-dbg
+            ${B2_OPTIONS_DBG}
+            variant=debug
+        WORKING_DIRECTORY ${SOURCE_PATH}
+        LOGNAME build-${TARGET_TRIPLET}-dbg
+    )
+    message(STATUS "Building ${TARGET_TRIPLET}-dbg done")
+endif()
 
 message(STATUS "Packaging headers")
 file(
@@ -222,7 +263,7 @@ file(
 
 # Disable Boost auto-link.
 file(APPEND ${CURRENT_PACKAGES_DIR}/include/boost/config/user.hpp
-	"\n#define BOOST_ALL_NO_LIB\n"
+    "\n#ifndef BOOST_ALL_NO_LIB\n#define BOOST_ALL_NO_LIB\n#endif\n"
 )
 file(APPEND ${CURRENT_PACKAGES_DIR}/include/boost/config/user.hpp
     "\n#undef BOOST_ALL_DYN_LINK\n"
@@ -257,44 +298,57 @@ function(boost_rename_libs LIBS)
     endforeach()
 endfunction()
 
-message(STATUS "Packaging ${TARGET_TRIPLET}-rel")
-file(INSTALL ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/stage/lib/
-    DESTINATION ${CURRENT_PACKAGES_DIR}/lib
-    FILES_MATCHING PATTERN "*.lib")
-if (VCPKG_LIBRARY_LINKAGE STREQUAL dynamic)
+if(NOT DEFINED VCPKG_BUILD_TYPE OR VCPKG_BUILD_TYPE STREQUAL "release")
+    message(STATUS "Packaging ${TARGET_TRIPLET}-rel")
     file(INSTALL ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/stage/lib/
-        DESTINATION ${CURRENT_PACKAGES_DIR}/bin
-        FILES_MATCHING PATTERN "*.dll")
-endif()
-file(GLOB RELEASE_LIBS ${CURRENT_PACKAGES_DIR}/lib/*.lib)
-boost_rename_libs(RELEASE_LIBS)
-if(EXISTS ${CURRENT_PACKAGES_DIR}/lib/boost_test_exec_monitor-vc140-mt-${VERSION}.lib)
-    file(MAKE_DIRECTORY ${CURRENT_PACKAGES_DIR}/lib/manual-link)
-    file(RENAME
-        ${CURRENT_PACKAGES_DIR}/lib/boost_test_exec_monitor-vc140-mt-${VERSION}.lib
-        ${CURRENT_PACKAGES_DIR}/lib/manual-link/boost_test_exec_monitor-vc140-mt-${VERSION}.lib
-    )
-endif()
-message(STATUS "Packaging ${TARGET_TRIPLET}-rel done")
+        DESTINATION ${CURRENT_PACKAGES_DIR}/lib
+        FILES_MATCHING PATTERN "*.lib")
+    if (VCPKG_LIBRARY_LINKAGE STREQUAL dynamic)
+        file(INSTALL ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/stage/lib/
+            DESTINATION ${CURRENT_PACKAGES_DIR}/bin
+            FILES_MATCHING PATTERN "*.dll")
+    endif()
+    file(GLOB RELEASE_LIBS ${CURRENT_PACKAGES_DIR}/lib/*.lib)
 
-message(STATUS "Packaging ${TARGET_TRIPLET}-dbg")
-file(INSTALL ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-dbg/stage/lib/
-    DESTINATION ${CURRENT_PACKAGES_DIR}/debug/lib
-    FILES_MATCHING PATTERN "*.lib")
-if (VCPKG_LIBRARY_LINKAGE STREQUAL dynamic)
+    boost_rename_libs(RELEASE_LIBS)
+    message(STATUS "Packaging ${TARGET_TRIPLET}-rel done")
+endif()
+
+if(NOT DEFINED VCPKG_BUILD_TYPE OR VCPKG_BUILD_TYPE STREQUAL "debug")
+    message(STATUS "Packaging ${TARGET_TRIPLET}-dbg")
     file(INSTALL ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-dbg/stage/lib/
-        DESTINATION ${CURRENT_PACKAGES_DIR}/debug/bin
-        FILES_MATCHING PATTERN "*.dll")
+        DESTINATION ${CURRENT_PACKAGES_DIR}/debug/lib
+        FILES_MATCHING PATTERN "*.lib")
+    if (VCPKG_LIBRARY_LINKAGE STREQUAL dynamic)
+        file(INSTALL ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-dbg/stage/lib/
+            DESTINATION ${CURRENT_PACKAGES_DIR}/debug/bin
+            FILES_MATCHING PATTERN "*.dll")
+    endif()
+    file(GLOB DEBUG_LIBS ${CURRENT_PACKAGES_DIR}/debug/lib/*.lib)
+    boost_rename_libs(DEBUG_LIBS)
+    message(STATUS "Packaging ${TARGET_TRIPLET}-dbg done")
 endif()
-file(GLOB DEBUG_LIBS ${CURRENT_PACKAGES_DIR}/debug/lib/*.lib)
-boost_rename_libs(DEBUG_LIBS)
-if(EXISTS ${CURRENT_PACKAGES_DIR}/debug/lib/boost_test_exec_monitor-vc140-mt-gd-${VERSION}.lib)
-    file(MAKE_DIRECTORY ${CURRENT_PACKAGES_DIR}/debug/lib/manual-link)
-    file(RENAME
-        ${CURRENT_PACKAGES_DIR}/debug/lib/boost_test_exec_monitor-vc140-mt-gd-${VERSION}.lib
-        ${CURRENT_PACKAGES_DIR}/debug/lib/manual-link/boost_test_exec_monitor-vc140-mt-gd-${VERSION}.lib
-    )
-endif()
-message(STATUS "Packaging ${TARGET_TRIPLET}-dbg done")
+
+macro(move_to_manual_link LIBNAME)
+    if(EXISTS ${CURRENT_PACKAGES_DIR}/lib/${LIBNAME}-vc140-mt-${VERSION_FULL}.lib)
+        file(MAKE_DIRECTORY ${CURRENT_PACKAGES_DIR}/lib/manual-link)
+        file(RENAME
+            ${CURRENT_PACKAGES_DIR}/lib/${LIBNAME}-vc140-mt-${VERSION_FULL}.lib
+            ${CURRENT_PACKAGES_DIR}/lib/manual-link/${LIBNAME}-vc140-mt-${VERSION_FULL}.lib
+        )
+    endif()
+    if(EXISTS ${CURRENT_PACKAGES_DIR}/debug/lib/${LIBNAME}-vc140-mt-gd-${VERSION_FULL}.lib)
+        file(MAKE_DIRECTORY ${CURRENT_PACKAGES_DIR}/debug/lib/manual-link)
+        file(RENAME
+            ${CURRENT_PACKAGES_DIR}/debug/lib/${LIBNAME}-vc140-mt-gd-${VERSION_FULL}.lib
+            ${CURRENT_PACKAGES_DIR}/debug/lib/manual-link/${LIBNAME}-vc140-mt-gd-${VERSION_FULL}.lib
+        )
+    endif()
+endmacro()
+
+move_to_manual_link(boost_test_exec_monitor)
+move_to_manual_link(boost_prg_exec_monitor)
 
 vcpkg_copy_pdbs()
+
+file(COPY ${CMAKE_CURRENT_LIST_DIR}/usage DESTINATION ${CURRENT_PACKAGES_DIR}/share/${PORT})

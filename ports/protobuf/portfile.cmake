@@ -1,16 +1,17 @@
 include(vcpkg_common_functions)
 
-set(PROTOBUF_VERSION 3.4.0)
+set(PROTOBUF_VERSION 3.5.0)
+set(PROTOC_VERSION 3.5.0)
 
 vcpkg_download_distfile(ARCHIVE_FILE
     URLS "https://github.com/google/protobuf/releases/download/v${PROTOBUF_VERSION}/protobuf-cpp-${PROTOBUF_VERSION}.tar.gz"
     FILENAME "protobuf-cpp-${PROTOBUF_VERSION}.tar.gz"
-    SHA512 ce9bd9bc818c4a8e8b08c83e8a4eba6fca008a64a5ad9d322b19683b1de2b5fa622ed99093323f3c9d0820ef23430f7ee07f6930f7f877d334e5d36df9b0be0e
+    SHA512 b1d3f3617898e3f73630ea7a43416a60b970291b4f93952b8d4f68ee5cd401f752d76cd1f6a65a87186b415208142401e01ffebb2ec52534e1db31abcc0d052e
 )
 vcpkg_download_distfile(TOOL_ARCHIVE_FILE
-    URLS "https://github.com/google/protobuf/releases/download/v${PROTOBUF_VERSION}/protoc-${PROTOBUF_VERSION}-win32.zip"
-    FILENAME "protoc-${PROTOBUF_VERSION}-win32.zip"
-    SHA512 b874c3f47b39ac78f5675e05220318683004a365c248bf47ba50d8c66c8ed7763432451bab30524e131e1185a2bdaa6e6071b389eb61ad58b1b95974cf39d41b
+    URLS "https://github.com/google/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-win32.zip"
+    FILENAME "protoc-${PROTOC_VERSION}-win32.zip"
+    SHA512 d332045346883ac1ca76a77cc9d6303b1c83147f49e7525c531d390b1ac57be1c765e01dc53eeb38a0d9fa3e30cab420f6a6f52dbb0c4d0a84a421de955007a4
 )
 
 set(SOURCE_PATH ${CURRENT_BUILDTREES_DIR}/src/protobuf-${PROTOBUF_VERSION})
@@ -21,7 +22,9 @@ vcpkg_extract_source_archive(${ARCHIVE_FILE})
 # Add a flag that can be set to disable the protobuf compiler
 vcpkg_apply_patches(
     SOURCE_PATH ${CURRENT_BUILDTREES_DIR}/src/protobuf-${PROTOBUF_VERSION}
-    PATCHES "${CMAKE_CURRENT_LIST_DIR}/001-add-compiler-flag.patch"
+    PATCHES
+        "${CMAKE_CURRENT_LIST_DIR}/001-add-compiler-flag.patch"
+        "${CMAKE_CURRENT_LIST_DIR}/export-ParseGeneratorParameter.patch"
 )
 
 
@@ -46,19 +49,24 @@ else()
     set(protobuf_MSVC_STATIC_RUNTIME OFF)
 endif()
 
+if("zlib" IN_LIST FEATURES)
+    set(protobuf_WITH_ZLIB ON)
+else()
+    set(protobuf_WITH_ZLIB OFF)
+endif()
+
 vcpkg_configure_cmake(
     SOURCE_PATH ${SOURCE_PATH}/cmake
     OPTIONS
         -Dprotobuf_BUILD_SHARED_LIBS=${protobuf_BUILD_SHARED_LIBS}
         -Dprotobuf_MSVC_STATIC_RUNTIME=${protobuf_MSVC_STATIC_RUNTIME}
-        -Dprotobuf_WITH_ZLIB=ON
+        -Dprotobuf_WITH_ZLIB=${protobuf_WITH_ZLIB}
         -Dprotobuf_BUILD_TESTS=OFF
         -Dprotobuf_BUILD_COMPILER=${protobuf_BUILD_COMPILER}
         -DCMAKE_INSTALL_CMAKEDIR=share/protobuf
 )
 
-# Using 64-bit toolset to avoid occassional Linker Out-of-Memory issues.
-vcpkg_install_cmake(MSVC_64_TOOLSET)
+vcpkg_install_cmake()
 
 # It appears that at this point the build hasn't actually finished. There is probably
 # a process spawned by the build, therefore we need to wait a bit.
