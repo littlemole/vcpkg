@@ -1,0 +1,4 @@
+Source: hiredis
+Version: 3.0
+Description: hiredis client lib for windows
+
