@@ -43,10 +43,12 @@ vcpkg_configure_cmake(
         -DBUILD_CURL_EXE=OFF
         -DENABLE_MANUAL=OFF
         -DCURL_STATICLIB=${CURL_STATICLIB}
-        -DCMAKE_USE_OPENSSL=ON
+	     -DCMAKE_USE_WINSSL=ON
     OPTIONS_DEBUG
         -DENABLE_DEBUG=ON
 )
+
+# -DCMAKE_USE_OPENSSL=ON
 
 vcpkg_install_cmake()
 

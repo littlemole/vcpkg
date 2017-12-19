@@ -285,3 +285,6 @@ scripts/buildsystems/tmp/
 ############################################################
 # vcpkg - End
 ############################################################
+
+x64-windows-bootstrapped.txt
+x86-windows-bootstrapped.txt
