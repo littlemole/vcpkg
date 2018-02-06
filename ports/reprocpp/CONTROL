@@ -1,0 +1,4 @@
+Source: reprocpp
+Version: 0.0.2
+Description: reactive generic c++ promise for the web.
+Build-Depends: gtest
