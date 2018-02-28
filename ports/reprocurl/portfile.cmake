@@ -11,11 +11,11 @@
 #
 
 include(vcpkg_common_functions)
-set(SOURCE_PATH ${CURRENT_BUILDTREES_DIR}/src/cryptoneat-0.0.8)
+set(SOURCE_PATH ${CURRENT_BUILDTREES_DIR}/src/repro-curl-0.0.3)
 vcpkg_download_distfile(ARCHIVE
-    URLS "https://github.com/littlemole/cryptoneat/archive/0.0.8.tar.gz"
-    FILENAME "cryptoneat-0.0.8.tgz"
-    SHA512 c41edca6c1b06abfa8267b5073f78586bc1bdd5b69169d2e53fa40a1686e69d3bfbfaa2d123a0ab7a53f20096ee9d79b64034d8d3c6b8f5518fa43845a85fd10
+    URLS "https://github.com/littlemole/repro-curl/archive/0.0.3.tar.gz"
+    FILENAME "reprocurl-0.0.3.tgz"
+    SHA512 17f9643a6e46999321fb85040c98f3126b81982bdb4dd9a6b949b112b677d5a0fedde5600c14cfeab4dcbe6c3bfa8a3586cabe31f75b7c1a0e991a03787b4d46
 )
 vcpkg_extract_source_archive(${ARCHIVE})
 
@@ -30,7 +30,7 @@ vcpkg_configure_cmake(
 vcpkg_install_cmake()
 
 # Handle copyright
-file(INSTALL ${SOURCE_PATH}/LICENSE DESTINATION ${CURRENT_PACKAGES_DIR}/share/cryptoneat RENAME copyright)
+file(INSTALL ${SOURCE_PATH}/LICENSE DESTINATION ${CURRENT_PACKAGES_DIR}/share/reprocurl RENAME copyright)
 
 
  file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/debug/include)
