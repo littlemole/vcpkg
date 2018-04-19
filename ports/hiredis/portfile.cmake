@@ -85,8 +85,9 @@ DESTINATION ${CURRENT_PACKAGES_DIR}/include/hiredis
 )
 
 message("++++++++++++++++")
+message("VOID: ${CMAKE_SIZEOF_VOID_P}")
 
-if (${CMAKE_SIZEOF_VOID_P} EQUAL "8")
+if (${CMAKE_SIZEOF_VOID_P} EQUAL 8)
 	set(ARCH x64)
 else()
 	set(ARCH Win32)
