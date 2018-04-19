@@ -81,21 +81,27 @@ ${CURRENT_BUILDTREES_DIR}/src/redis-3.0/src/Win32_Interop/win32_types_hiredis.h
 DESTINATION ${CURRENT_PACKAGES_DIR}/include/hiredis
 )
 
+if (CMAKE_SIZEOF_VOID_P EQUAL 8)
+	set(ARCH x64)
+else()
+	set(ARCH Win32)
+endif()
+
 file(INSTALL
-   ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-dbg/msvs/hiredis/Win32/Debug/hiredis.lib
+   ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-dbg/msvs/hiredis/${ARCH}/Debug/hiredis.lib
     DESTINATION ${CURRENT_PACKAGES_DIR}/debug/lib
 )
 file(INSTALL
-    ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/msvs/hiredis/Win32/Release/hiredis.lib
+    ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/msvs/hiredis/${ARCH}/Release/hiredis.lib
     DESTINATION ${CURRENT_PACKAGES_DIR}/lib
 )
 
 file(INSTALL
-    ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-dbg/src/Win32_Interop/Win32/Debug/Win32_Interop.lib
+    ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-dbg/src/Win32_Interop/${ARCH}/Debug/Win32_Interop.lib
     DESTINATION ${CURRENT_PACKAGES_DIR}/debug/lib
 )
 file(INSTALL
-    ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/src/Win32_Interop/Win32/Release/Win32_Interop.lib
+    ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/src/Win32_Interop/${ARCH}/Release/Win32_Interop.lib
     DESTINATION ${CURRENT_PACKAGES_DIR}/lib
 )
 
