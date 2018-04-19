@@ -85,9 +85,9 @@ DESTINATION ${CURRENT_PACKAGES_DIR}/include/hiredis
 )
 
 message("++++++++++++++++")
-message("Generator: ${CMAKE_GENERATOR}")
+message("Generator: ${TARGET_TRIPLET}")
 
-if (${CMAKE_GENERATOR STREQUAL "Visual Studio 15 2017 Win64")
+if (${TARGET_TRIPLET} MATCHES "x64")
 	set(ARCH x64)
 else()
 	set(ARCH Win32)
