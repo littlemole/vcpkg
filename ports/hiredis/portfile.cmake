@@ -85,9 +85,9 @@ DESTINATION ${CURRENT_PACKAGES_DIR}/include/hiredis
 )
 
 message("++++++++++++++++")
-message("VOID: ${CMAKE_SIZEOF_VOID_P}")
+message("Generator: ${CMAKE_GENERATOR}")
 
-if (CMAKE_SIZEOF_VOID_P EQUAL 8)
+if (${CMAKE_GENERATOR STREQUAL "Visual Studio 15 2017 Win64")
 	set(ARCH x64)
 else()
 	set(ARCH Win32)
