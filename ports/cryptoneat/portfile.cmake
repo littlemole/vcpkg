@@ -11,11 +11,11 @@
 #
 
 include(vcpkg_common_functions)
-set(SOURCE_PATH ${CURRENT_BUILDTREES_DIR}/src/cryptoneat-0.0.10)
+set(SOURCE_PATH ${CURRENT_BUILDTREES_DIR}/src/cryptoneat-0.0.11)
 vcpkg_download_distfile(ARCHIVE
-    URLS "https://github.com/littlemole/cryptoneat/archive/0.0.10.tar.gz"
-    FILENAME "cryptoneat-0.0.10.tgz"
-    SHA512 4c716f1c0e665b1cd82c45481b1f14f9ce62a78504d06cc5cf05e53a0c506826f13eb3f9c0c7752082d46cc466451093c9c411c66a0c3a483c7b6962ee6380d0
+    URLS "https://github.com/littlemole/cryptoneat/archive/0.0.11.tar.gz"
+    FILENAME "cryptoneat-0.0.11.tgz"
+    SHA512 52353c1d50823da376f3a25337b7376194a41194274c636dfab49e60955638247ab8d99d3f38cff2d07deabe3b796322be99a067468d9e5e6e80a137f9f8453f
 )
 vcpkg_extract_source_archive(${ARCHIVE})
 
