@@ -1,4 +1,4 @@
 Source: cryptoneat
-Version: 0.0.9
+Version: 0.0.10
 Description: openssl crypto for mere mortals.
 Build-Depends: openssl, gtest
