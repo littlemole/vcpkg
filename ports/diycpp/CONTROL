@@ -1,0 +1,4 @@
+Source: diycpp
+Version: 0.0.2
+Description: do it yourself dependency injection
+Build-Depends: gtest
