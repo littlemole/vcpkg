@@ -1,4 +1,4 @@
 Source: reproredis
 Version: 0.0.5
 Description: reactive generic c++ redis client wrapper with promises.
-Build-Depends: gtest, openssl, cryptoneat, reprocpp, priocpp, hiredis
+Build-Depends: gtest, openssl, cryptoneat, reprocpp, priocpp
