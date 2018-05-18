@@ -15,7 +15,7 @@ set(SOURCE_PATH ${CURRENT_BUILDTREES_DIR}/src/repro-web-0.0.1)
 vcpkg_download_distfile(ARCHIVE
     URLS "https://github.com/littlemole/repro-web/archive/0.0.1.tar.gz"
     FILENAME "reproweb-0.0.1.tgz"
-    SHA512 935b3d516e996f6d25948ba8a54c1b7f70f7f0e3f517e36481fdf0196c2c5cfc2841f86e891f3df9517746b7fb605db47cdded1b8ff78d9482ddaa621db43a34
+    SHA512 cc104a844959623654d9e21cf61c7f056f6aa1a2b2a45e8e124ad88c6c51d7e501927e1fbccf8b9f668122e119ce5050705554b08a8b4d7367e6f6e81ec5e5bf
 )
 vcpkg_extract_source_archive(${ARCHIVE})
 
