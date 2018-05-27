@@ -11,11 +11,11 @@
 #
 
 include(vcpkg_common_functions)
-set(SOURCE_PATH ${CURRENT_BUILDTREES_DIR}/src/repro-0.0.9)
+set(SOURCE_PATH ${CURRENT_BUILDTREES_DIR}/src/repro-0.0.10)
 vcpkg_download_distfile(ARCHIVE
-    URLS "https://github.com/littlemole/repro/archive/0.0.9.tar.gz"
-    FILENAME "repro-0.0.9.tgz"
-    SHA512 6ea4c41e63782273b3138196bc8df31aef43271a675f5a358d665a9aaa1f9a74e23f3fda533734a4890cf02277ffe6acc1ce1398de786b8e8166fafd30be8261
+    URLS "https://github.com/littlemole/repro/archive/0.0.10.tar.gz"
+    FILENAME "repro-0.0.10.tgz"
+    SHA512 a09fa55ba3c874649f49ee091a18afccbadbbe3dc923114df9ca8e5a26fdb9efc1987835c50c764e1d745bf98a776a3f845587eb7de931cefa1813c54a553a80
 )
 vcpkg_extract_source_archive(${ARCHIVE})
 
