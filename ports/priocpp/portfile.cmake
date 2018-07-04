@@ -11,11 +11,11 @@
 #
 
 include(vcpkg_common_functions)
-set(SOURCE_PATH ${CURRENT_BUILDTREES_DIR}/src/prio-0.0.19)
+set(SOURCE_PATH ${CURRENT_BUILDTREES_DIR}/src/prio-0.0.20)
 vcpkg_download_distfile(ARCHIVE
-    URLS "https://github.com/littlemole/prio/archive/0.0.19.tar.gz"
-    FILENAME "prio-0.0.19.tgz"
-    SHA512 9bd18d668293e2a84baba972a8ce6844452c25d65fde8a4432acbe83354b81ea605e86fa5a6953795bc2bbe4d0a7df4e825a7ccb4f74786fd188a0bb0c969aa5
+    URLS "https://github.com/littlemole/prio/archive/0.0.20.tar.gz"
+    FILENAME "prio-0.0.20.tgz"
+    SHA512 e7ca7070311c2e979a6703dfe422cceeeb51929a8825062870f5156b540e920dec88b3679658aed44d8dac718f97bb0b76a41ef199b0df1695f571952eaef51b
 )
 vcpkg_extract_source_archive(${ARCHIVE})
 
