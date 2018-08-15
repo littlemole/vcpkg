@@ -1,4 +1,4 @@
 Source: priocpp
-Version: 0.0.21
+Version: 0.0.22
 Description: reactive io for c++ with promises.
 Build-Depends: gtest, reprocpp, cryptoneat, nghttp2, libevent
