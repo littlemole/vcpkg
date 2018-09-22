@@ -1,4 +1,4 @@
 Source: reprocurl
-Version: 0.0.8
+Version: 0.0.9
 Description: reactive generic c++ curl wrapper with promises.
 Build-Depends: gtest, openssl, cryptoneat, reprocpp, priocpp
