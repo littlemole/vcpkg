@@ -11,11 +11,11 @@
 #
 
 include(vcpkg_common_functions)
-set(SOURCE_PATH ${CURRENT_BUILDTREES_DIR}/src/repro-web-0.0.14)
+set(SOURCE_PATH ${CURRENT_BUILDTREES_DIR}/src/repro-web-0.0.15)
 vcpkg_download_distfile(ARCHIVE
-    URLS "https://github.com/littlemole/repro-web/archive/0.0.14.tar.gz"
-    FILENAME "reproweb-0.0.14.tgz"
-    SHA512 a785fd68aed6fd4a535a5c3ca34c0e73c3b8ef3f0ba92d42618e83eba6c4515780a9cad446646cbb450160ba15316bcead51f638336b34064e28a77321f818bb
+    URLS "https://github.com/littlemole/repro-web/archive/0.0.15.tar.gz"
+    FILENAME "reproweb-0.0.15.tgz"
+    SHA512 fee8f54db7c6a80f29df924f31452274284b9d3b9b506f628ac85077baa4c914f350e71eb17ed5ebef805d1804cdec311d8d745fe31e0a3e077a2f025d288f84
 )
 vcpkg_extract_source_archive(${ARCHIVE})
 
