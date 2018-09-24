@@ -3,8 +3,8 @@ include(vcpkg_common_functions)
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO zeromq/libzmq
-    REF bb4fb32925c6465fd0f8e8cc89e5347bc79bc4bf
-    SHA512 73101b68d93fdf1eca1f83373fe4c946865978d32ca11692e9015a63af8d42ff2d2ff93c88c812f75c2d80596c986df59e62f8de3dc1a016ab24f91f518c24eb
+    REF ea517a28ff23cff24a3b2ead42e1f6a44e6fad0e
+    SHA512 11425b151192b39e770ece1df3139b99315a4647ec242e951b736cc232da79a0b80f635b071d87adaa7d3f6d4266ab67d31b8f95f31fe3ab278e53febc5ae796
     HEAD_REF master
 )
 
@@ -43,6 +43,7 @@ if(VCPKG_LIBRARY_LINKAGE STREQUAL "dynamic")
     string(REPLACE "get_target_property(ZeroMQ_STATIC_LIBRARY libzmq-static LOCATION)" "add_library(libzmq-static INTERFACE IMPORTED)\nset_target_properties(libzmq-static PROPERTIES INTERFACE_LINK_LIBRARIES libzmq)" _contents "${_contents}")
     set(_contents "${_contents}\nset(ZeroMQ_STATIC_LIBRARY \${ZeroMQ_LIBRARY})\n")
 else()
+    string(REPLACE "get_target_property(ZeroMQ_INCLUDE_DIR libzmq INTERFACE_INCLUDE_DIRECTORIES)" "get_target_property(ZeroMQ_INCLUDE_DIR libzmq-static INTERFACE_INCLUDE_DIRECTORIES)" _contents "${_contents}")
     string(REPLACE "get_target_property(ZeroMQ_LIBRARY libzmq LOCATION)" "add_library(libzmq INTERFACE IMPORTED)\nset_target_properties(libzmq PROPERTIES INTERFACE_LINK_LIBRARIES libzmq-static)" _contents "${_contents}")
     set(_contents "${_contents}\nset(ZeroMQ_LIBRARY \${ZeroMQ_STATIC_LIBRARY})\n")
 
