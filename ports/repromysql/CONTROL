@@ -1,4 +1,4 @@
 Source: repromysql
-Version: 0.0.2
+Version: 0.0.3
 Description: reactive generic c++ curl wrapper with promises.
 Build-Depends: gtest, libmysql, openssl, cryptoneat, reprocpp, priocpp
