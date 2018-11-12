@@ -11,11 +11,11 @@
 #
 
 include(vcpkg_common_functions)
-set(SOURCE_PATH ${CURRENT_BUILDTREES_DIR}/src/repro-curl-0.0.10)
+set(SOURCE_PATH ${CURRENT_BUILDTREES_DIR}/src/repro-curl-0.0.11)
 vcpkg_download_distfile(ARCHIVE
-    URLS "https://github.com/littlemole/repro-curl/archive/0.0.10.tar.gz"
-    FILENAME "reprocurl-0.0.10.tgz"
-    SHA512 248e9adf106960f382bde99e0c11e688d42b15f58a052cbf1542315e02f65f47ee3d2a9e9fa07d6a1fa40b21ec292f4fd682708aabc713bfe2835e93f6ab567b
+    URLS "https://github.com/littlemole/repro-curl/archive/0.0.11.tar.gz"
+    FILENAME "reprocurl-0.0.11.tgz"
+    SHA512 49ba8bd1551cd712783f2c16a6d1725f284d5bf750b1d292354041f6b4181bbeb8081e7e4d857e915d3cc78a4a116e20d8e9171b46bb0c7839ca241b3c3e5ba4
 )
 vcpkg_extract_source_archive(${ARCHIVE})
 
