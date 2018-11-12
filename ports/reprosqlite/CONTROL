@@ -1,4 +1,4 @@
 Source: reprosqlite
-Version: 0.0.5
+Version: 0.0.6
 Description: reactive generic c++ sqite3 wrapper with promises.
 Build-Depends: gtest, sqlite3, reprocpp, priocpp
