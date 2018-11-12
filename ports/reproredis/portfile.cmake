@@ -11,11 +11,11 @@
 #
 
 include(vcpkg_common_functions)
-set(SOURCE_PATH ${CURRENT_BUILDTREES_DIR}/src/repro-redis-0.0.13)
+set(SOURCE_PATH ${CURRENT_BUILDTREES_DIR}/src/repro-redis-0.0.14)
 vcpkg_download_distfile(ARCHIVE
-    URLS "https://github.com/littlemole/repro-redis/archive/0.0.13.tar.gz"
-    FILENAME "reproredis-0.0.13.tgz"
-    SHA512 4850b38ef401687c82e5aa78110c4d19f0c4cd07c431ed8737b9319ab597fdc68ffb9953319c499353c8c3482cfc735656a989ecc25b347abe32ae1bab4ca00e
+    URLS "https://github.com/littlemole/repro-redis/archive/0.0.14.tar.gz"
+    FILENAME "reproredis-0.0.14.tgz"
+    SHA512 f94b372cea692d09706f390c31546b47a76ba634778b4a25d0c5d252115c18e21d4e45c958bf07547f9e89713bcd55ba37c179e9bb955bc925eb2f875663b023
 )
 vcpkg_extract_source_archive(${ARCHIVE})
 
