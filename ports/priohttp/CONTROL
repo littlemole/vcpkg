@@ -1,4 +1,4 @@
 Source: priohttp
-Version: 0.0.17
+Version: 0.0.18
 Description: reactive generic c++ http wrapper with promises.
 Build-Depends: boost-any, gtest, openssl, cryptoneat, reprocpp, priocpp, zlib
