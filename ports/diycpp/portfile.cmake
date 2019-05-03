@@ -11,11 +11,11 @@
 #
 
 include(vcpkg_common_functions)
-set(SOURCE_PATH ${CURRENT_BUILDTREES_DIR}/src/diy-0.0.5)
+set(SOURCE_PATH ${CURRENT_BUILDTREES_DIR}/src/diy-0.0.6)
 vcpkg_download_distfile(ARCHIVE
-    URLS "https://github.com/littlemole/diy/archive/0.0.5.tar.gz"
-    FILENAME "diy-0.0.5.tgz"
-    SHA512 49c7f5c7b67794194aff1cd6a6d2e466a71673687bb54c952b3b80daa6c5065590d33655dd088a83ece4d01a3a37abbfe364bf116439b435e41bcd28797925b2
+    URLS "https://github.com/littlemole/diy/archive/0.0.6.tar.gz"
+    FILENAME "diy-0.0.6.tgz"
+    SHA512 b82a269cf80bd12cb9d33fe05162eee88ea1553b9be623f8fca14ea28d659a730f5b2a7049203c1858cd6a90c4cae826186f1d24ff9cde32c672df592406731e
 )
 vcpkg_extract_source_archive(${ARCHIVE})
 
