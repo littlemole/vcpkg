@@ -11,11 +11,11 @@
 #
 
 include(vcpkg_common_functions)
-set(SOURCE_PATH ${CURRENT_BUILDTREES_DIR}/src/repro-mysql-0.0.8)
+set(SOURCE_PATH ${CURRENT_BUILDTREES_DIR}/src/repro-mysql-0.0.9)
 vcpkg_download_distfile(ARCHIVE
-    URLS "https://github.com/littlemole/repro-mysql/archive/0.0.8.tar.gz"
-    FILENAME "repromysql-0.0.8.tgz"
-    SHA512 4327b2e26f74a92f9a2d5df7865290f73804da6a06898a0b88e6bfc0cb9af29fa127720e6d996b9e593d6ae2d42bfa0e838c3fcfb085062b8908ef606fe05180
+    URLS "https://github.com/littlemole/repro-mysql/archive/0.0.9.tar.gz"
+    FILENAME "repromysql-0.0.9.tgz"
+    SHA512 2f3866068689a5c1a0af641314cb3946172c9a8dd69d4ffd18cb41decc688a830876667c1fe6db2432157ac488cb115603855cfe79534118cdd320770806d8d4
 )
 vcpkg_extract_source_archive(${ARCHIVE})
 
