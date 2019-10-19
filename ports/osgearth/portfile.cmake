@@ -1,13 +1,6 @@
 include(vcpkg_common_functions)
 
-if (VCPKG_LIBRARY_LINKAGE STREQUAL static)
-    message(STATUS "Warning: Static building will not support load data through plugins.")
-    set(VCPKG_LIBRARY_LINKAGE dynamic)
-endif()
-
-if(VCPKG_CRT_LINKAGE STREQUAL static)
-    message(FATAL_ERROR "osgearth does not support static CRT linkage")
-endif()
+vcpkg_check_linkage(ONLY_DYNAMIC_LIBRARY ONLY_DYNAMIC_CRT)
 
 file(GLOB OSG_PLUGINS_SUBDIR ${CURRENT_INSTALLED_DIR}/tools/osg/osgPlugins-*)
 list(LENGTH OSG_PLUGINS_SUBDIR OSG_PLUGINS_SUBDIR_LENGTH)
@@ -16,20 +9,14 @@ if(NOT OSG_PLUGINS_SUBDIR_LENGTH EQUAL 1)
 endif()
 string(REPLACE "${CURRENT_INSTALLED_DIR}/tools/osg/" "" OSG_PLUGINS_SUBDIR "${OSG_PLUGINS_SUBDIR}")
 
-vcpkg_download_distfile(
-    VS2017PATCH
-    URLS "https://github.com/remoe/osgearth/commit/f7081cc4f9991c955c6a0ef7b7b50e48360d14fd.diff"
-    FILENAME "osgearth-f7081cc4f9991c955c6a0ef7b7b50e48360d14fd.patch"
-    SHA512 eadb47a5713c00c05add8627e5cad22844db041da34081d59104151a1a1e2d5ac9552909d67171bfc0449a3e4d2930dd3a7914d3ec7ef7ff1015574e9c9a6105
-)
-
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO gwaldron/osgearth
-    REF d1884d819d4a43de32b7ca1ded655c73964bed17
-    SHA512 525ad4ce8bcbd7d73a2ed66e7fbcd9d302582276f26dda1ef2baa3828da5c1e302ba81aac95d0a0632c7395cbcd072d2b19d084ba641c1ba92872d42bb6f769c
+    REF osgearth-2.10.2
+    SHA512 fa306a82374716dafae9d834ed0fb07a7369ae0961696de36b6e2af45bc150040295985d9b9781ab713fd0707691451a6a8f173b34253749ab22764f51e60045
     HEAD_REF master
-    PATCHES ${VS2017PATCH}
+    PATCHES 
+		RocksDB.patch
 )
 
 vcpkg_configure_cmake(

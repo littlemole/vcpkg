@@ -11,6 +11,9 @@
 *.userosscache
 *.sln.docstates
 
+toolsrc/out*
+toolsrc/CMakeSettings.json
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
@@ -312,3 +315,4 @@ __pycache__/
 
 x64-windows-bootstrapped.txt
 x86-windows-bootstrapped.txt
+archives

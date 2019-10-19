@@ -3,16 +3,18 @@ include(vcpkg_common_functions)
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO apache/orc
-    REF f47e02cfbf346f14d7f38c3ddd45d39e3b515847
-    SHA512 5a389f4ab3b0ce4e7c8869493cf9e91feb4917a42bf2740abd71602fa03a2a53217b572e60af7328b7568dab084c07275ea275438ec8ae87f230a87fb60f2601
+    REF 8a8e471f6a7064e9538374374e57c9e5b4be520d
+    SHA512 c10d6f56965abde585607473142cedea25e2085147e5c66e1991cbbb313543a919d93f9a830c76ae1331f97fafe4e9a47157062b05d80746869bc3f73772e3bc
     HEAD_REF master
     PATCHES
-      0001-dependencies-from-vcpkg.patch
-      0002-fix-executable-output-folder.patch
+      0003-dependencies-from-vcpkg.patch
+      0004-update-tzdata.patch
+      no-werror.patch
 )
 
 file(REMOVE "${SOURCE_PATH}/cmake_modules/FindGTest.cmake")
 file(REMOVE "${SOURCE_PATH}/cmake_modules/FindLZ4.cmake")
+file(REMOVE "${SOURCE_PATH}/cmake_modules/FindZSTD.cmake")
 file(REMOVE "${SOURCE_PATH}/cmake_modules/FindProtobuf.cmake")
 file(REMOVE "${SOURCE_PATH}/cmake_modules/FindSnappy.cmake")
 file(REMOVE "${SOURCE_PATH}/cmake_modules/FindZLIB.cmake")

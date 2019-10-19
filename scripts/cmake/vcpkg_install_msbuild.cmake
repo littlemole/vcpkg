@@ -1,6 +1,6 @@
 ## # vcpkg_install_msbuild
 ##
-## Build and install an msbuild-based project. This replaces `vcpkg_build_msbuild()`.
+## Build and install a msbuild-based project. This replaces `vcpkg_build_msbuild()`.
 ##
 ## ## Usage
 ## ```cmake
@@ -144,7 +144,7 @@ function(vcpkg_install_msbuild)
     endif()
 
     if(_csc_USE_VCPKG_INTEGRATION)
-        list(APPEND _csc_OPTIONS /p:ForceImportBeforeCppTargets=${VCPKG_ROOT_DIR}/scripts/buildsystems/msbuild/vcpkg.targets /p:VcpkgApplocalDeps=false)
+        list(APPEND _csc_OPTIONS /p:ForceImportBeforeCppTargets=${SCRIPTS}/buildsystems/msbuild/vcpkg.targets /p:VcpkgApplocalDeps=false)
     endif()
 
     get_filename_component(SOURCE_PATH_SUFFIX "${_csc_SOURCE_PATH}" NAME)

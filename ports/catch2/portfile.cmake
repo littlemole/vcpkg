@@ -3,8 +3,8 @@ include(vcpkg_common_functions)
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO catchorg/Catch2
-    REF v2.4.2
-    SHA512 7422c5c114d93b57cac5596e573d0993ecc6db37708df3491d346bb3aad7a1ee1d1008689ae7b8ef4b0b4fa41aa66566580f807778ae2e4f278687d6fe7aa38b
+    REF v2.9.2
+    SHA512 06430322dbeb637902f3bdc1c4df04e2525bc3ad9aea47aaf284b311401f26f489092971a2822d5a54041ef1d01d1b1bda3eedea2ba5041ae89903d8e56db121
     HEAD_REF master
 )
 
@@ -18,7 +18,7 @@ vcpkg_configure_cmake(
 
 vcpkg_install_cmake()
 
-vcpkg_fixup_cmake_targets(CONFIG_PATH lib/cmake/Catch2 TARGET_PATH share/catch2)
+vcpkg_fixup_cmake_targets(CONFIG_PATH lib/cmake/Catch2)
 
 file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/debug ${CURRENT_PACKAGES_DIR}/lib)
 
