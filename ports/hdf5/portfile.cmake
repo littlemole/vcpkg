@@ -3,47 +3,63 @@ if(VCPKG_CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
 endif()
 
 include(vcpkg_common_functions)
-set(SOURCE_PATH ${CURRENT_BUILDTREES_DIR}/src/CMake-hdf5-1.10.0-patch1/hdf5-1.10.0-patch1)
 vcpkg_download_distfile(ARCHIVE
-    URLS "http://hdf4.org/ftp/HDF5/releases/hdf5-1.10/hdf5-1.10.0-patch1/src/CMake-hdf5-1.10.0-patch1.zip"
-    FILENAME "CMake-hdf5-1.10.0-patch1.zip"
-    SHA512 ec2edb43438661323be5998ecf64c4dd537ddc7451e31f89390260d16883e60a1ccc1bf745bcb809af22f2bf7157d50331a33910b8ebf5c59cd50693dfb2ef8f
+    URLS "https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.10/hdf5-1.10.5/src/CMake-hdf5-1.10.5.tar.gz"
+    FILENAME "CMake-hdf5-1.10.5.tar.gz"
+    SHA512 a25ea28d7a511f9184d97b5b8cd4c6d52dcdcad2bffd670e24a1c9a6f98b03108014a853553fa2b00d4be7523128b5fd6a4454545e3b17ff8c66fea16a09e962
 )
-vcpkg_extract_source_archive(${ARCHIVE})
 
-vcpkg_apply_patches(
-    SOURCE_PATH ${SOURCE_PATH}
+vcpkg_extract_source_archive_ex(
+    OUT_SOURCE_PATH SOURCE_PATH
+    ARCHIVE ${ARCHIVE}
+    REF hdf5
     PATCHES
-        ${CMAKE_CURRENT_LIST_DIR}/use-szip-config.patch
-        ${CMAKE_CURRENT_LIST_DIR}/disable-static-libs.patch
-        ${CMAKE_CURRENT_LIST_DIR}/link-libraries-private.patch
+        hdf5_config.patch
 )
 
-string(COMPARE EQUAL "${VCPKG_LIBRARY_LINKAGE}" "dynamic" DISABLE_STATIC_LIBS)
+if ("parallel" IN_LIST FEATURES)
+    set(ENABLE_PARALLEL ON)
+else()
+    set(ENABLE_PARALLEL OFF)
+endif()
+
+if ("cpp" IN_LIST FEATURES)
+    set(ENABLE_CPP ON)
+else()
+    set(ENABLE_CPP OFF)
+endif()
+
+file(REMOVE ${SOURCE_PATH}/config/cmake_ext_mod/FindSZIP.cmake)#Outdated; does not find debug szip
 
 vcpkg_configure_cmake(
-    SOURCE_PATH ${SOURCE_PATH}
+    SOURCE_PATH ${SOURCE_PATH}/hdf5-1.10.5
+    DISABLE_PARALLEL_CONFIGURE
     PREFER_NINJA
     OPTIONS
         -DBUILD_TESTING=OFF
-        -DDISABLE_STATIC_LIBS=${DISABLE_STATIC_LIBS}
         -DHDF5_BUILD_EXAMPLES=OFF
         -DHDF5_BUILD_TOOLS=OFF
-        -DHDF5_BUILD_CPP_LIB=OFF
-        -DHDF5_ENABLE_PARALLEL=ON
+        -DHDF5_BUILD_CPP_LIB=${ENABLE_CPP}
+        -DHDF5_ENABLE_PARALLEL=${ENABLE_PARALLEL}
         -DHDF5_ENABLE_Z_LIB_SUPPORT=ON
         -DHDF5_ENABLE_SZIP_SUPPORT=ON
         -DHDF5_ENABLE_SZIP_ENCODING=ON
         -DHDF5_INSTALL_DATA_DIR=share/hdf5/data
-        -DHDF5_INSTALL_CMAKE_DIR=share/hdf5
+        -DHDF5_INSTALL_CMAKE_DIR=share
 )
+
 
 vcpkg_install_cmake()
 vcpkg_copy_pdbs()
+vcpkg_fixup_cmake_targets()
 
-file(RENAME ${CURRENT_PACKAGES_DIR}/share/hdf5/data/COPYING ${CURRENT_PACKAGES_DIR}/share/hdf5/copyright)
-
-vcpkg_fixup_cmake_targets(CONFIG_PATH share/hdf5)
+#Linux build create additional scripts here. I dont know what they are doing so I am deleting them and hope for the best
+if(VCPKG_LIBRARY_LINKAGE STREQUAL "static")
+    file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/bin ${CURRENT_PACKAGES_DIR}/debug/bin)
+endif()
 
 file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/debug/share)
 file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/debug/include)
+
+file(RENAME ${CURRENT_PACKAGES_DIR}/share/hdf5/data/COPYING ${CURRENT_PACKAGES_DIR}/share/hdf5/copyright)
+configure_file(${CMAKE_CURRENT_LIST_DIR}/vcpkg-cmake-wrapper.cmake ${CURRENT_PACKAGES_DIR}/share/hdf5/vcpkg-cmake-wrapper.cmake @ONLY)

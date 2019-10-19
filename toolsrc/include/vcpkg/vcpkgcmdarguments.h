@@ -1,8 +1,8 @@
 #pragma once
 
-#include <vcpkg/base/cstringview.h>
 #include <vcpkg/base/optional.h>
 #include <vcpkg/base/span.h>
+#include <vcpkg/base/stringliteral.h>
 
 #include <memory>
 #include <unordered_map>
@@ -15,26 +15,49 @@ namespace vcpkg
     {
         std::unordered_set<std::string> switches;
         std::unordered_map<std::string, std::string> settings;
+        std::unordered_map<std::string, std::vector<std::string>> multisettings;
     };
 
     struct VcpkgPaths;
 
     struct CommandSwitch
     {
-        std::string name;
-        CStringView short_help_text;
+        constexpr CommandSwitch(const StringLiteral& name, const StringLiteral& short_help_text)
+            : name(name), short_help_text(short_help_text)
+        {
+        }
+
+        StringLiteral name;
+        StringLiteral short_help_text;
     };
 
     struct CommandSetting
     {
-        std::string name;
-        CStringView short_help_text;
+        constexpr CommandSetting(const StringLiteral& name, const StringLiteral& short_help_text)
+            : name(name), short_help_text(short_help_text)
+        {
+        }
+
+        StringLiteral name;
+        StringLiteral short_help_text;
+    };
+
+    struct CommandMultiSetting
+    {
+        constexpr CommandMultiSetting(const StringLiteral& name, const StringLiteral& short_help_text)
+            : name(name), short_help_text(short_help_text)
+        {
+        }
+
+        StringLiteral name;
+        StringLiteral short_help_text;
     };
 
     struct CommandOptionsStructure
     {
         Span<const CommandSwitch> switches;
         Span<const CommandSetting> settings;
+        Span<const CommandMultiSetting> multisettings;
     };
 
     struct CommandStructure
@@ -63,10 +86,17 @@ namespace vcpkg
         static VcpkgCmdArguments create_from_arg_sequence(const std::string* arg_begin, const std::string* arg_end);
 
         std::unique_ptr<std::string> vcpkg_root_dir;
+        std::unique_ptr<std::string> scripts_root_dir;
         std::unique_ptr<std::string> triplet;
+        std::unique_ptr<std::vector<std::string>> overlay_ports;
+        std::unique_ptr<std::vector<std::string>> overlay_triplets;
         Optional<bool> debug = nullopt;
         Optional<bool> sendmetrics = nullopt;
         Optional<bool> printmetrics = nullopt;
+
+        // feature flags
+        Optional<bool> featurepackages = nullopt;
+        Optional<bool> binarycaching = nullopt;
 
         std::string command;
         std::vector<std::string> command_arguments;
@@ -74,6 +104,6 @@ namespace vcpkg
         ParsedArguments parse_arguments(const CommandStructure& command_structure) const;
 
     private:
-        std::unordered_map<std::string, Optional<std::string>> optional_command_arguments;
+        std::unordered_map<std::string, Optional<std::vector<std::string>>> optional_command_arguments;
     };
 }

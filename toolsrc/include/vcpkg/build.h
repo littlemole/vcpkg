@@ -12,6 +12,7 @@
 
 #include <array>
 #include <map>
+#include <set>
 #include <vector>
 
 namespace vcpkg::Build
@@ -19,7 +20,7 @@ namespace vcpkg::Build
     namespace Command
     {
         void perform_and_exit_ex(const FullPackageSpec& full_spec,
-                                 const fs::path& port_dir,
+                                 const SourceControlFileLocation& scfl,
                                  const ParsedArguments& options,
                                  const VcpkgPaths& paths);
 
@@ -38,7 +39,25 @@ namespace vcpkg::Build
         YES
     };
 
+    enum class OnlyDownloads
+    {
+        NO = 0,
+        YES
+    };
+
     enum class CleanBuildtrees
+    {
+        NO = 0,
+        YES
+    };
+
+    enum class CleanPackages
+    {
+        NO = 0,
+        YES
+    };
+
+    enum class CleanDownloads
     {
         NO = 0,
         YES
@@ -50,11 +69,36 @@ namespace vcpkg::Build
         RELEASE,
     };
 
+    enum class DownloadTool
+    {
+        BUILT_IN,
+        ARIA2,
+    };
+    const std::string& to_string(DownloadTool tool);
+
+    enum class BinaryCaching
+    {
+        NO = 0,
+        YES
+    };
+
+    enum class FailOnTombstone
+    {
+        NO = 0,
+        YES
+    };
+
     struct BuildPackageOptions
     {
         UseHeadVersion use_head_version;
         AllowDownloads allow_downloads;
+        OnlyDownloads only_downloads;
         CleanBuildtrees clean_buildtrees;
+        CleanPackages clean_packages;
+        CleanDownloads clean_downloads;
+        DownloadTool download_tool;
+        BinaryCaching binary_caching;
+        FailOnTombstone fail_on_tombstone;
     };
 
     enum class BuildResult
@@ -66,6 +110,7 @@ namespace vcpkg::Build
         FILE_CONFLICTS,
         CASCADED_DUE_TO_MISSING_DEPENDENCIES,
         EXCLUDED,
+        DOWNLOADED
     };
 
     static constexpr std::array<BuildResult, 6> BUILD_RESULT_VALUES = {
@@ -88,8 +133,11 @@ namespace vcpkg::Build
         /// <summary>
         /// Runs the triplet file in a "capture" mode to create a PreBuildInfo
         /// </summary>
-        static PreBuildInfo from_triplet_file(const VcpkgPaths& paths, const Triplet& triplet);
+        static PreBuildInfo from_triplet_file(const VcpkgPaths& paths,
+                                              const Triplet& triplet,
+                                              Optional<const SourceControlFileLocation&> port = nullopt);
 
+        std::string triplet_abi_tag;
         std::string target_architecture;
         std::string cmake_system_name;
         std::string cmake_system_version;
@@ -97,56 +145,70 @@ namespace vcpkg::Build
         Optional<fs::path> visual_studio_path;
         Optional<std::string> external_toolchain_file;
         Optional<ConfigurationType> build_type;
+        Optional<std::string> public_abi_override;
+        Optional<const SourceControlFileLocation&> port;
+        std::vector<std::string> passthrough_env_vars;
     };
 
     std::string make_build_env_cmd(const PreBuildInfo& pre_build_info, const Toolset& toolset);
 
+    enum class VcpkgTripletVar
+    {
+        TARGET_ARCHITECTURE = 0,
+        CMAKE_SYSTEM_NAME,
+        CMAKE_SYSTEM_VERSION,
+        PLATFORM_TOOLSET,
+        VISUAL_STUDIO_PATH,
+        CHAINLOAD_TOOLCHAIN_FILE,
+        BUILD_TYPE,
+        ENV_PASSTHROUGH,
+        PUBLIC_ABI_OVERRIDE,
+    };
+
+    const std::unordered_map<std::string, VcpkgTripletVar> VCPKG_OPTIONS = {
+        {"VCPKG_TARGET_ARCHITECTURE", VcpkgTripletVar::TARGET_ARCHITECTURE},
+        {"VCPKG_CMAKE_SYSTEM_NAME", VcpkgTripletVar::CMAKE_SYSTEM_NAME},
+        {"VCPKG_CMAKE_SYSTEM_VERSION", VcpkgTripletVar::CMAKE_SYSTEM_VERSION},
+        {"VCPKG_PLATFORM_TOOLSET", VcpkgTripletVar::PLATFORM_TOOLSET},
+        {"VCPKG_VISUAL_STUDIO_PATH", VcpkgTripletVar::VISUAL_STUDIO_PATH},
+        {"VCPKG_CHAINLOAD_TOOLCHAIN_FILE", VcpkgTripletVar::CHAINLOAD_TOOLCHAIN_FILE},
+        {"VCPKG_BUILD_TYPE", VcpkgTripletVar::BUILD_TYPE},
+        {"VCPKG_ENV_PASSTHROUGH", VcpkgTripletVar::ENV_PASSTHROUGH},
+        {"VCPKG_PUBLIC_ABI_OVERRIDE", VcpkgTripletVar::PUBLIC_ABI_OVERRIDE},
+    };
+
     struct ExtendedBuildResult
     {
         ExtendedBuildResult(BuildResult code);
-        ExtendedBuildResult(BuildResult code, std::vector<PackageSpec>&& unmet_deps);
+        ExtendedBuildResult(BuildResult code, std::vector<FeatureSpec>&& unmet_deps);
         ExtendedBuildResult(BuildResult code, std::unique_ptr<BinaryControlFile>&& bcf);
 
         BuildResult code;
-        std::vector<PackageSpec> unmet_dependencies;
+        std::vector<FeatureSpec> unmet_dependencies;
         std::unique_ptr<BinaryControlFile> binary_control_file;
     };
 
     struct BuildPackageConfig
     {
-        BuildPackageConfig(const SourceParagraph& src,
+        BuildPackageConfig(const SourceControlFileLocation& scfl,
                            const Triplet& triplet,
-                           fs::path&& port_dir,
-                           const BuildPackageOptions& build_package_options)
-            : src(src)
-            , scf(nullptr)
-            , triplet(triplet)
-            , port_dir(std::move(port_dir))
-            , build_package_options(build_package_options)
-            , feature_list(nullptr)
-        {
-        }
-
-        BuildPackageConfig(const SourceControlFile& src,
-                           const Triplet& triplet,
-                           fs::path&& port_dir,
                            const BuildPackageOptions& build_package_options,
-                           const std::unordered_set<std::string>& feature_list)
-            : src(*src.core_paragraph)
-            , scf(&src)
+                           const std::set<std::string>& feature_list)
+            : scfl(scfl)
+            , scf(*scfl.source_control_file)
             , triplet(triplet)
-            , port_dir(std::move(port_dir))
+            , port_dir(scfl.source_location)
             , build_package_options(build_package_options)
-            , feature_list(&feature_list)
+            , feature_list(feature_list)
         {
         }
 
-        const SourceParagraph& src;
-        const SourceControlFile* scf;
+        const SourceControlFileLocation& scfl;
+        const SourceControlFile& scf;
         const Triplet& triplet;
         fs::path port_dir;
         const BuildPackageOptions& build_package_options;
-        const std::unordered_set<std::string>* feature_list;
+        const std::set<std::string>& feature_list;
     };
 
     ExtendedBuildResult build_package(const VcpkgPaths& paths,
@@ -201,8 +263,8 @@ namespace vcpkg::Build
 
     struct BuildInfo
     {
-        LinkageType crt_linkage;
-        LinkageType library_linkage;
+        LinkageType crt_linkage = LinkageType::DYNAMIC;
+        LinkageType library_linkage = LinkageType::DYNAMIC;
 
         Optional<std::string> version;
 
@@ -210,4 +272,29 @@ namespace vcpkg::Build
     };
 
     BuildInfo read_build_info(const Files::Filesystem& fs, const fs::path& filepath);
+
+    struct AbiEntry
+    {
+        std::string key;
+        std::string value;
+
+        AbiEntry() = default;
+        AbiEntry(const std::string& key, const std::string& value) : key(key), value(value) {}
+
+        bool operator<(const AbiEntry& other) const
+        {
+            return key < other.key || (key == other.key && value < other.value);
+        }
+    };
+
+    struct AbiTagAndFile
+    {
+        std::string tag;
+        fs::path tag_file;
+    };
+
+    Optional<AbiTagAndFile> compute_abi_tag(const VcpkgPaths& paths,
+                                            const BuildPackageConfig& config,
+                                            const PreBuildInfo& pre_build_info,
+                                            Span<const AbiEntry> dependency_abis);
 }

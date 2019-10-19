@@ -7,6 +7,8 @@
 #include <vcpkg/vcpkgpaths.h>
 
 #include <array>
+#include <map>
+#include <vector>
 
 namespace vcpkg::Commands
 {
@@ -39,6 +41,12 @@ namespace vcpkg::Commands
         void perform_and_exit(const VcpkgCmdArguments& args, const VcpkgPaths& paths);
     }
 
+    namespace Upgrade
+    {
+        extern const CommandStructure COMMAND_STRUCTURE;
+        void perform_and_exit(const VcpkgCmdArguments& args, const VcpkgPaths& paths, const Triplet& default_triplet);
+    }
+
     namespace Edit
     {
         extern const CommandStructure COMMAND_STRUCTURE;
@@ -47,7 +55,8 @@ namespace vcpkg::Commands
 
     namespace DependInfo
     {
-        void perform_and_exit(const VcpkgCmdArguments& args, const VcpkgPaths& paths);
+        extern const CommandStructure COMMAND_STRUCTURE;
+        void perform_and_exit(const VcpkgCmdArguments& args, const VcpkgPaths& paths, const Triplet& default_triplet);
     }
 
     namespace Search
@@ -91,6 +100,11 @@ namespace vcpkg::Commands
         void perform_and_exit(const VcpkgCmdArguments& args, const VcpkgPaths& paths);
     }
 
+    namespace PortHistory
+    {
+        void perform_and_exit(const VcpkgCmdArguments& args, const VcpkgPaths& paths);
+    }
+
     namespace Autocomplete
     {
         void perform_and_exit(const VcpkgCmdArguments& args, const VcpkgPaths& paths);
@@ -98,6 +112,7 @@ namespace vcpkg::Commands
 
     namespace Version
     {
+        const char* base_version();
         const std::string& version();
         void warn_if_vcpkg_version_mismatch(const VcpkgPaths& paths);
         void perform_and_exit(const VcpkgCmdArguments& args);
@@ -110,9 +125,20 @@ namespace vcpkg::Commands
         void perform_and_exit(const VcpkgCmdArguments& args);
     }
 
+    namespace X_VSInstances
+    {
+        extern const CommandStructure COMMAND_STRUCTURE;
+        void perform_and_exit(const VcpkgCmdArguments& args, const VcpkgPaths& paths);
+    }
+
     namespace Hash
     {
-        void perform_and_exit(const VcpkgCmdArguments& args);
+        void perform_and_exit(const VcpkgCmdArguments& args, const VcpkgPaths& paths);
+    }
+
+    namespace Fetch
+    {
+        void perform_and_exit(const VcpkgCmdArguments& args, const VcpkgPaths& paths);
     }
 
     template<class T>

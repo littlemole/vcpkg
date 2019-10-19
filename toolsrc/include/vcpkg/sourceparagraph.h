@@ -23,12 +23,16 @@ namespace vcpkg
 
     std::vector<std::string> filter_dependencies(const std::vector<Dependency>& deps, const Triplet& t);
     std::vector<FeatureSpec> filter_dependencies_to_specs(const std::vector<Dependency>& deps, const Triplet& t);
+    std::vector<Features> filter_dependencies_to_features(const std::vector<vcpkg::Dependency>& deps, const Triplet& t);
 
     // zlib[uwp] becomes Dependency{"zlib", "uwp"}
     std::vector<Dependency> expand_qualified_dependencies(const std::vector<std::string>& depends);
 
     std::string to_string(const Dependency& dep);
 
+    /// <summary>
+    /// Port metadata of additional feature in a package (part of CONTROL file)
+    /// </summary>
     struct FeatureParagraph
     {
         std::string name;
@@ -37,7 +41,7 @@ namespace vcpkg
     };
 
     /// <summary>
-    /// Port metadata (CONTROL file)
+    /// Port metadata of the core feature of a package (part of CONTROL file)
     /// </summary>
     struct SourceParagraph
     {
@@ -45,10 +49,15 @@ namespace vcpkg
         std::string version;
         std::string description;
         std::string maintainer;
+        std::string homepage;
         std::vector<std::string> supports;
         std::vector<Dependency> depends;
         std::vector<std::string> default_features;
     };
+
+    /// <summary>
+    /// Full metadata of a package: core and other features.
+    /// </summary>
     struct SourceControlFile
     {
         static Parse::ParseExpected<SourceControlFile> parse_control_file(
@@ -56,6 +65,18 @@ namespace vcpkg
 
         std::unique_ptr<SourceParagraph> core_paragraph;
         std::vector<std::unique_ptr<FeatureParagraph>> feature_paragraphs;
+
+        Optional<const FeatureParagraph&> find_feature(const std::string& featurename) const;
+    };
+
+    /// <summary>
+    /// Full metadata of a package: core and other features. As well as the location the SourceControlFile was loaded
+    /// from.
+    /// </summary>
+    struct SourceControlFileLocation
+    {
+        std::unique_ptr<SourceControlFile> source_control_file;
+        fs::path source_location;
     };
 
     void print_error_message(Span<const std::unique_ptr<Parse::ParseControlErrorInfo>> error_info_list);

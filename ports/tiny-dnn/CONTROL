@@ -1,3 +1,4 @@
 Source: tiny-dnn
-Version: 2017-10-09-dd906fed8c8aff8dc837657c42f9d55f8b793b0e
+Version: 2018-10-25
+Homepage: https://github.com/tiny-dnn/tiny-dnn
 Description: A C++14 implementation of deep learning. It is suitable for deep learning on limited computational resource.

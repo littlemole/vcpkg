@@ -15,6 +15,9 @@
 ## The target passed to the cmake build command (`cmake --build . --target <target>`). If not specified, no target will
 ## be passed.
 ##
+## ### ADD_BIN_TO_PATH
+## Adds the appropriate Release and Debug `bin\` directories to the path during the build such that executables can run against the in-tree DLLs.
+##
 ## ## Notes:
 ## This command should be preceeded by a call to [`vcpkg_configure_cmake()`](vcpkg_configure_cmake.md).
 ## You can use the alias [`vcpkg_install_cmake()`](vcpkg_configure_cmake.md) function if your CMake script supports the
@@ -27,25 +30,24 @@
 ## * [poco](https://github.com/Microsoft/vcpkg/blob/master/ports/poco/portfile.cmake)
 ## * [opencv](https://github.com/Microsoft/vcpkg/blob/master/ports/opencv/portfile.cmake)
 function(vcpkg_build_cmake)
-    cmake_parse_arguments(_bc "DISABLE_PARALLEL" "TARGET;LOGFILE_ROOT" "" ${ARGN})
+    cmake_parse_arguments(_bc "DISABLE_PARALLEL;ADD_BIN_TO_PATH" "TARGET;LOGFILE_ROOT" "" ${ARGN})
 
     if(NOT _bc_LOGFILE_ROOT)
         set(_bc_LOGFILE_ROOT "build")
     endif()
 
+    set(PARALLEL_ARG)
+    set(NO_PARALLEL_ARG)
+
     if(_VCPKG_CMAKE_GENERATOR MATCHES "Ninja")
         set(BUILD_ARGS "-v") # verbose output
-        if (_bc_DISABLE_PARALLEL)
-            list(APPEND BUILD_ARGS "-j1")
-        endif()
+        set(NO_PARALLEL_ARG "-j1")
     elseif(_VCPKG_CMAKE_GENERATOR MATCHES "Visual Studio")
         set(BUILD_ARGS
             "/p:VCPkgLocalAppDataDisabled=true"
             "/p:UseIntelMKL=No"
         )
-        if (NOT _bc_DISABLE_PARALLEL)
-            list(APPEND BUILD_ARGS "/m")
-        endif()
+        set(PARALLEL_ARG "/m")
     elseif(_VCPKG_CMAKE_GENERATOR MATCHES "NMake")
         # No options are currently added for nmake builds
     else()
@@ -58,23 +60,50 @@ function(vcpkg_build_cmake)
         set(TARGET_PARAM)
     endif()
 
-    if(NOT DEFINED VCPKG_BUILD_TYPE OR VCPKG_BUILD_TYPE STREQUAL "release")
-        message(STATUS "Build ${TARGET_TRIPLET}-rel")
-        vcpkg_execute_required_process(
-            COMMAND ${CMAKE_COMMAND} --build . --config Release ${TARGET_PARAM} -- ${BUILD_ARGS}
-            WORKING_DIRECTORY ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel
-            LOGNAME ${_bc_LOGFILE_ROOT}-${TARGET_TRIPLET}-rel
-        )
-        message(STATUS "Build ${TARGET_TRIPLET}-rel done")
-    endif()
+    foreach(BUILDTYPE "debug" "release")
+        if(NOT DEFINED VCPKG_BUILD_TYPE OR VCPKG_BUILD_TYPE STREQUAL BUILDTYPE)
+            if(BUILDTYPE STREQUAL "debug")
+                set(SHORT_BUILDTYPE "dbg")
+                set(CONFIG "Debug")
+            else()
+                set(SHORT_BUILDTYPE "rel")
+                set(CONFIG "Release")
+            endif()
 
-    if(NOT DEFINED VCPKG_BUILD_TYPE OR VCPKG_BUILD_TYPE STREQUAL "debug")
-        message(STATUS "Build ${TARGET_TRIPLET}-dbg")
-        vcpkg_execute_required_process(
-            COMMAND ${CMAKE_COMMAND} --build . --config Debug ${TARGET_PARAM} -- ${BUILD_ARGS}
-            WORKING_DIRECTORY ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-dbg
-            LOGNAME ${_bc_LOGFILE_ROOT}-${TARGET_TRIPLET}-dbg
-        )
-        message(STATUS "Build ${TARGET_TRIPLET}-dbg done")
-    endif()
+            message(STATUS "Building ${TARGET_TRIPLET}-${SHORT_BUILDTYPE}")
+
+            if(_bc_ADD_BIN_TO_PATH)
+                set(_BACKUP_ENV_PATH "$ENV{PATH}")
+                if(CMAKE_HOST_WIN32)
+                    set(_PATHSEP ";")
+                else()
+                    set(_PATHSEP ":")
+                endif()
+                if(BUILDTYPE STREQUAL "debug")
+                    set(ENV{PATH} "${CURRENT_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/debug/bin${_PATHSEP}$ENV{PATH}")
+                else()
+                    set(ENV{PATH} "${CURRENT_INSTALLED_DIR}/${VCPKG_TARGET_TRIPLET}/bin${_PATHSEP}$ENV{PATH}")
+                endif()
+            endif()
+
+            if (_bc_DISABLE_PARALLEL)
+                vcpkg_execute_build_process(
+                    COMMAND ${CMAKE_COMMAND} --build . --config ${CONFIG} ${TARGET_PARAM} -- ${BUILD_ARGS} ${NO_PARALLEL_ARG}
+                    WORKING_DIRECTORY ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-${SHORT_BUILDTYPE}
+                    LOGNAME "${_bc_LOGFILE_ROOT}-${TARGET_TRIPLET}-${SHORT_BUILDTYPE}"
+                )
+            else()
+                vcpkg_execute_build_process(
+                    COMMAND ${CMAKE_COMMAND} --build . --config ${CONFIG} ${TARGET_PARAM} -- ${BUILD_ARGS} ${PARALLEL_ARG}
+                    NO_PARALLEL_COMMAND ${CMAKE_COMMAND} --build . --config ${CONFIG} ${TARGET_PARAM} -- ${BUILD_ARGS} ${NO_PARALLEL_ARG}
+                    WORKING_DIRECTORY ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-${SHORT_BUILDTYPE}
+                    LOGNAME "${_bc_LOGFILE_ROOT}-${TARGET_TRIPLET}-${SHORT_BUILDTYPE}"
+                )
+            endif()
+
+            if(_bc_ADD_BIN_TO_PATH)
+                set(ENV{PATH} "${_BACKUP_ENV_PATH}")
+            endif()
+        endif()
+    endforeach()
 endfunction()

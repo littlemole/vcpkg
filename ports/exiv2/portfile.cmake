@@ -3,27 +3,48 @@ include(vcpkg_common_functions)
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO Exiv2/exiv2
-    REF 4f4add2cdcbe73af7098122a509dff0739d15908
-    SHA512 32207cfd7ac932942562e062e851d7ba9be5586f33c2d924fb2a908a78f0c53f0d2973108c49bc865a3e7697a04a4b65d991441e4b89baca82b51b61affd4fa3
+    REF v0.27.2
+    SHA512 349063fd8ef6c44b5b2f3f68aad839271a9cb8ff206af237d28d9e9d05dcdf43b61f3232d4566780b2898d62c20134e8ea65d588a19a664c0224750e4ea1340d
     HEAD_REF master
+    PATCHES
+        iconv.patch
 )
+
+if((NOT VCPKG_CMAKE_SYSTEM_NAME OR VCPKG_CMAKE_SYSTEM_NAME STREQUAL "WindowsStore") AND ("unicode" IN_LIST FEATURES))
+    set(enable_win_unicode TRUE)
+elseif()
+    set(enable_win_unicode FALSE)
+endif()
 
 vcpkg_configure_cmake(
     SOURCE_PATH ${SOURCE_PATH}
+    PREFER_NINJA
+    OPTIONS
+        -DEXIV2_ENABLE_WIN_UNICODE:BOOL=${enable_win_unicode}
+        -DEXIV2_BUILD_EXIV2_COMMAND:BOOL=FALSE
+        -DEXIV2_BUILD_UNIT_TESTS:BOOL=FALSE
+        -DEXIV2_BUILD_SAMPLES:BOOL=FALSE
 )
 
 vcpkg_install_cmake()
+vcpkg_fixup_cmake_targets(CONFIG_PATH lib/cmake/exiv2)
+
+configure_file(
+    ${CMAKE_CURRENT_LIST_DIR}/vcpkg-cmake-wrapper.cmake
+    ${CURRENT_PACKAGES_DIR}/share/exiv2
+    @ONLY
+)
 
 vcpkg_copy_pdbs()
 
 # Clean
-file(GLOB EXE ${CURRENT_PACKAGES_DIR}/bin/*.exe)
-file(GLOB DEBUG_EXE ${CURRENT_PACKAGES_DIR}/debug/bin/*.exe)
-file(REMOVE ${EXE})
-file(REMOVE ${DEBUG_EXE})
-file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/debug/include)
-file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/debug/share)
+file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/debug/include ${CURRENT_PACKAGES_DIR}/debug/share)
+file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/debug/lib/exiv2 ${CURRENT_PACKAGES_DIR}/lib/exiv2)
 
-# Handle copyright 
-file(COPY ${SOURCE_PATH}/ABOUT-NLS DESTINATION ${CURRENT_PACKAGES_DIR}/share/exiv2)
-file(RENAME ${CURRENT_PACKAGES_DIR}/share/exiv2/ABOUT-NLS ${CURRENT_PACKAGES_DIR}/share/exiv2/copyright)
+if(VCPKG_LIBRARY_LINKAGE STREQUAL "static")
+    file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/bin ${CURRENT_PACKAGES_DIR}/debug/bin)
+endif()
+
+# Handle copyright
+file(COPY ${SOURCE_PATH}/COPYING DESTINATION ${CURRENT_PACKAGES_DIR}/share/exiv2)
+file(RENAME ${CURRENT_PACKAGES_DIR}/share/exiv2/COPYING ${CURRENT_PACKAGES_DIR}/share/exiv2/copyright)

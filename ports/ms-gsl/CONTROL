@@ -1,3 +1,4 @@
 Source: ms-gsl
-Version: 20171204-9d65e74400976b3509833f49b16d401600c7317d
+Version: 2019-07-11
+Homepage: https://github.com/Microsoft/GSL
 Description: Microsoft implementation of the Guidelines Support Library

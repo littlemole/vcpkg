@@ -1,10 +1,12 @@
 include(vcpkg_common_functions)
 
+vcpkg_check_linkage(ONLY_STATIC_LIBRARY)
+
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO ocornut/imgui
-    REF v1.52
-    SHA512 8ada897ae33bcffa222dab4e9ff602611fa27d43f26085b8f96c313fea917d3149f1e3f4640f6156cfb7bc39bcb116106ccb4e8da1409d467e78c93bf9f7ea03
+    REF v1.73
+    SHA512 1d67b7cc3f06ea77a2484e62034104386f42106fefe9b6eb62ee8a31fe949c9cda0cc095fbead9269e9da2a5d6199604d34c095eefd630655725265ac0fc4d92
     HEAD_REF master
 )
 
@@ -18,7 +20,26 @@ vcpkg_configure_cmake(
 )
 
 vcpkg_install_cmake()
-vcpkg_copy_pdbs()
 
-file(COPY ${SOURCE_PATH}/LICENSE.txt DESTINATION ${CURRENT_PACKAGES_DIR}/share/imgui)
-file(RENAME ${CURRENT_PACKAGES_DIR}/share/imgui/LICENSE.txt ${CURRENT_PACKAGES_DIR}/share/imgui/copyright)
+if ("example" IN_LIST FEATURES)
+    if (NOT VCPKG_TARGET_IS_WINDOWS)
+        message(FATAL_ERROR "Feature example only support windows.")
+    endif()
+    vcpkg_build_msbuild(
+        USE_VCPKG_INTEGRATION
+        PROJECT_PATH ${SOURCE_PATH}/examples/imgui_examples.sln
+    )
+    
+    # Install headers
+    file(GLOB IMGUI_EXAMPLE_INCLUDES ${SOURCE_PATH}/examples/*.h)
+    file(INSTALL ${IMGUI_EXAMPLE_INCLUDES} DESTINATION ${CURRENT_PACKAGES_DIR}/include)
+    
+    # Install tools
+    file(GLOB_RECURSE IMGUI_EXAMPLE_BINARIES ${SOURCE_PATH}/examples/*${VCPKG_TARGET_EXECUTABLE_SUFFIX})
+    file(INSTALL ${IMGUI_EXAMPLE_BINARIES} DESTINATION ${CURRENT_PACKAGES_DIR}/tools)
+endif()
+
+vcpkg_copy_pdbs()
+vcpkg_fixup_cmake_targets()
+
+configure_file(${SOURCE_PATH}/LICENSE.txt ${CURRENT_PACKAGES_DIR}/share/imgui/copyright COPYONLY)

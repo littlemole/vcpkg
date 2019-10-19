@@ -1,15 +1,12 @@
 include(vcpkg_common_functions)
 
-if(VCPKG_LIBRARY_LINKAGE STREQUAL dynamic)
-  message(WARNING "Dynamic not supported building static")
-  set(VCPKG_LIBRARY_LINKAGE static)
-endif()
+vcpkg_check_linkage(ONLY_STATIC_LIBRARY)
 
 vcpkg_from_github(
   OUT_SOURCE_PATH SOURCE_PATH
   REPO google/piex
-  REF 473434f2dd974978b329faf5c87ae8aa09a2714d
-  SHA512  cb4a4107eb5e880673accac0f19965f3318e5e4c2fc24724afef5d15eab40d5866e17eb1a23af3b06b729d0e898ed99a6407d1f3000e94e3bbd71e1952d19627
+  REF 256bd102be288c19b4165e0ecc7097a18c004e92
+  SHA512 ae948588a99d586593788c995c3d65a488faaf99b2ab6c51ec39df7e11a42c89454dd505117e90b1f152f6abfc2e3e11f61b0af97e42ecdff0d978934e20f582
   HEAD_REF master
 )
 

@@ -3,41 +3,83 @@ include(vcpkg_common_functions)
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO IntelRealSense/librealsense
-    REF v2.8.2
-    SHA512 a2622ff241e939fad74f6d0224b5f9b505e971935bb8f27dc10159a5853bc5d55870c312c0f43014c8c7ec5a1c824e659ee9ee9a574b2d7c9b8e484c1a4918a1
-    HEAD_REF master
-)
-
-vcpkg_apply_patches(
-    SOURCE_PATH ${SOURCE_PATH}
+    REF v2.22.0
+    SHA512 7595780c1955a2d4a91df5b70ab6366c672f389bc3d2dcb9f2e78a2ea1fc875c65f878103df483205e17f62dfd024ee5f7ccb15afc5d18978d3c25aa071652ab
+    HEAD_REF development
     PATCHES
-        ${CMAKE_CURRENT_LIST_DIR}/crt-linkage-restriction.patch
+        fix_openni2.patch
+        fix-dependency-glfw3.patch
 )
 
-string(COMPARE EQUAL "${VCPKG_LIBRARY_LINKAGE}" "dynamic" BUILD_SHARED)
+string(COMPARE EQUAL "${VCPKG_CRT_LINKAGE}" "static" BUILD_CRT_LINKAGE)
+
+set(BUILD_TOOLS OFF)
+if("tools" IN_LIST FEATURES)
+    set(BUILD_TOOLS ON)
+endif()
+
+set(BUILD_OPENNI2_BINDINGS OFF)
+if(("openni2" IN_LIST FEATURES) AND (VCPKG_LIBRARY_LINKAGE STREQUAL "dynamic"))
+  set(BUILD_OPENNI2_BINDINGS ON)
+endif()
 
 vcpkg_configure_cmake(
     SOURCE_PATH ${SOURCE_PATH}
+    PREFER_NINJA
     OPTIONS
-        -DENFORCE_METADATA=on
-        -DBUILD_EXAMPLES=off
-        -DBUILD_GRAPHICAL_EXAMPLES=off
-        -DBUILD_PYTHON_BINDINGS=off
-        -DBUILD_UNIT_TESTS=off
-        -DBUILD_WITH_OPENMP=off  # keep OpenMP off until librealsense issue #744 is patched
-        -DBUILD_SHARED_LIBS=${BUILD_SHARED}
+        -DENFORCE_METADATA=ON
+        -DBUILD_WITH_TM2=OFF
+        -DBUILD_WITH_OPENMP=OFF
+        -DBUILD_UNIT_TESTS=OFF
+        -DBUILD_WITH_STATIC_CRT=${BUILD_CRT_LINKAGE}
+        -DBUILD_OPENNI2_BINDINGS=${BUILD_OPENNI2_BINDINGS}
+        -DOPENNI2_DIR=${CURRENT_INSTALLED_DIR}/include/openni2
+    OPTIONS_RELEASE
+        -DBUILD_EXAMPLES=${BUILD_TOOLS}
+        -DBUILD_GRAPHICAL_EXAMPLES=${BUILD_TOOLS}
     OPTIONS_DEBUG
-        "-DCMAKE_PDB_OUTPUT_DIRECTORY=${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-dbg"
+        -DBUILD_EXAMPLES=OFF
+        -DBUILD_GRAPHICAL_EXAMPLES=OFF
 )
 
 vcpkg_install_cmake()
 
 vcpkg_fixup_cmake_targets(CONFIG_PATH lib/cmake/realsense2)
 
-file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/debug/include)
-# Handle copyright
-file(COPY ${SOURCE_PATH}/COPYING DESTINATION ${CURRENT_PACKAGES_DIR}/share/realsense2)
-file(RENAME ${CURRENT_PACKAGES_DIR}/share/realsense2/COPYING ${CURRENT_PACKAGES_DIR}/share/realsense2/copyright)
-
 vcpkg_copy_pdbs()
 
+
+file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/debug/include)
+file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/debug/share)
+
+if(BUILD_TOOLS)
+    file(GLOB EXEFILES_RELEASE 
+        ${CURRENT_PACKAGES_DIR}/bin/rs-* 
+        ${CURRENT_PACKAGES_DIR}/bin/realsense-*
+    )
+
+    if (EXEFILES_RELEASE)
+        file(COPY ${EXEFILES_RELEASE} DESTINATION ${CURRENT_PACKAGES_DIR}/tools/realsense2)
+        file(REMOVE ${EXEFILES_RELEASE})
+    endif()
+
+    vcpkg_copy_tool_dependencies(${CURRENT_PACKAGES_DIR}/tools/realsense2)
+
+    file(GLOB BINS ${CURRENT_PACKAGES_DIR}/bin/*)
+    if(NOT BINS)
+        file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/bin ${CURRENT_PACKAGES_DIR}/debug/bin)
+    endif()
+    
+    # Issue#7109, remove mismatched dlls and libs when build with tools, this workaround should be removed when the post-build checks related feature implemented.
+    file(REMOVE ${CURRENT_PACKAGES_DIR}/lib/realsense2-gl.lib)
+    file(REMOVE ${CURRENT_PACKAGES_DIR}/bin/realsense2-gl.dll)
+    file(REMOVE ${CURRENT_PACKAGES_DIR}/bin/realsense2-gl.pdb)
+endif()
+
+
+if(BUILD_OPENNI2_BINDINGS)
+  file(COPY ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/_out/rs2driver* 
+    DESTINATION ${CURRENT_PACKAGES_DIR}/tools/openni2/OpenNI2/Drivers)
+endif()
+
+file(INSTALL ${SOURCE_PATH}/LICENSE DESTINATION ${CURRENT_PACKAGES_DIR}/share/${PORT} RENAME copyright)
