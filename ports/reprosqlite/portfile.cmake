@@ -11,11 +11,11 @@
 #
 
 include(vcpkg_common_functions)
-set(SOURCE_PATH ${CURRENT_BUILDTREES_DIR}/src/repro-sqlite-0.0.8)
+set(SOURCE_PATH ${CURRENT_BUILDTREES_DIR}/src/repro-sqlite-0.0.9)
 vcpkg_download_distfile(ARCHIVE
-    URLS "https://github.com/littlemole/repro-sqlite/archive/0.0.8.tar.gz"
-    FILENAME "reprosqlite-0.0.8.tgz"
-    SHA512 6e9f4192d298ce8afd22594fbbca7ad0fa887f9090a7011e3b2ac6a83aaf878ed3f2c0063552e1eac468cedd5fa35044c2703f6371c406c8de58b5c242db085d
+    URLS "https://github.com/littlemole/repro-sqlite/archive/0.0.9.tar.gz"
+    FILENAME "reprosqlite-0.0.9.tgz"
+    SHA512 4f3d360fa3c072b527a3a43f554a6c402d6104a96e99e19ff666131fc67e8a82aa0732100686151051c65c4be2f88b493f14b933375e1ae631a5a78297d8be89
 )
 vcpkg_extract_source_archive(${ARCHIVE})
 
