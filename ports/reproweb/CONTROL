@@ -1,4 +1,4 @@
 Source: reproweb
-Version: 0.0.38
+Version: 0.0.39
 Description: reactive generic c++ web front controller with promises.
 Build-Depends: gtest, openssl, cryptoneat, reprocpp, priocpp, priohttp, zlib, jsoncpp, reprocurl, diycpp, libiconv, expat
