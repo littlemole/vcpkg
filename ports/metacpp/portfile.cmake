@@ -15,7 +15,7 @@ set(SOURCE_PATH ${CURRENT_BUILDTREES_DIR}/src/metacpp-0.0.1)
 vcpkg_download_distfile(ARCHIVE
     URLS "https://github.com/littlemole/metacpp/archive/0.0.1.tar.gz"
     FILENAME "metacpp-0.0.1.tgz"
-    SHA512 0f2ea2507ae395ec41789da60e226e201c153591b1891546b303e927a4af9ca1fff253cd2b0f2c78bfe2981a33915056c6671cfad5b23302f9f9ce4f0f83f4d1
+    SHA512 a640c6045031f2d6e6b8b55a8029f236c211f5b3d5588dcc430146171826f732693208765ff6529dd23fa953ae72bf79eaa74cc2e7bc2868dbaaf7cb73a2acc6
 )
 vcpkg_extract_source_archive(${ARCHIVE})
 
