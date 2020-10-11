@@ -11,10 +11,10 @@
 #
 
 include(vcpkg_common_functions)
-set(SOURCE_PATH ${CURRENT_BUILDTREES_DIR}/src/patex-0.0.1)
+set(SOURCE_PATH ${CURRENT_BUILDTREES_DIR}/src/patex-0.0.2)
 vcpkg_download_distfile(ARCHIVE
-    URLS "https://github.com/littlemole/patex/archive/0.0.1.tar.gz"
-    FILENAME "patex-0.0.1.tgz"
+    URLS "https://github.com/littlemole/patex/archive/0.0.2.tar.gz"
+    FILENAME "patex-0.0.2.tgz"
     SHA512 70a711d7e0d1def1cb542174f4f521e3823e236e77c16196bed4b18aec0006f194b4f68ff7af43647604861372229a18e52574ddd32ccf3acc85d2e7d0092482
 )
 vcpkg_extract_source_archive(${ARCHIVE})
