@@ -11,11 +11,11 @@
 #
 
 include(vcpkg_common_functions)
-set(SOURCE_PATH ${CURRENT_BUILDTREES_DIR}/src/patex-0.0.2)
+set(SOURCE_PATH ${CURRENT_BUILDTREES_DIR}/src/metacpp-0.0.1)
 vcpkg_download_distfile(ARCHIVE
-    URLS "https://github.com/littlemole/patex/archive/0.0.2.tar.gz"
-    FILENAME "patex-0.0.2.tgz"
-    SHA512 4ea20209dad79b87c90ea461f398572b70820ff0b52392a94bbff0c88703e9c3e111de285b00b483865803339a1eda4baa5742d699eacb8de389d0c129b46dde
+    URLS "https://github.com/littlemole/metacpp/archive/0.0.1.tar.gz"
+    FILENAME "metacpp-0.0.1.tgz"
+    SHA512 0f2ea2507ae395ec41789da60e226e201c153591b1891546b303e927a4af9ca1fff253cd2b0f2c78bfe2981a33915056c6671cfad5b23302f9f9ce4f0f83f4d1
 )
 vcpkg_extract_source_archive(${ARCHIVE})
 
@@ -30,7 +30,7 @@ vcpkg_configure_cmake(
 vcpkg_install_cmake()
 
 # Handle copyright
-file(INSTALL ${SOURCE_PATH}/LICENSE DESTINATION ${CURRENT_PACKAGES_DIR}/share/patex RENAME copyright)
+file(INSTALL ${SOURCE_PATH}/LICENSE DESTINATION ${CURRENT_PACKAGES_DIR}/share/metacpp RENAME copyright)
 
 
  file(REMOVE_RECURSE ${CURRENT_PACKAGES_DIR}/debug/include)
