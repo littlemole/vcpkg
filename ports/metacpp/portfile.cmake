@@ -11,11 +11,11 @@
 #
 
 include(vcpkg_common_functions)
-set(SOURCE_PATH ${CURRENT_BUILDTREES_DIR}/src/metacpp-0.0.1)
+set(SOURCE_PATH ${CURRENT_BUILDTREES_DIR}/src/metacpp-0.0.2)
 vcpkg_download_distfile(ARCHIVE
-    URLS "https://github.com/littlemole/metacpp/archive/0.0.1.tar.gz"
-    FILENAME "metacpp-0.0.1.tgz"
-    SHA512 a640c6045031f2d6e6b8b55a8029f236c211f5b3d5588dcc430146171826f732693208765ff6529dd23fa953ae72bf79eaa74cc2e7bc2868dbaaf7cb73a2acc6
+    URLS "https://github.com/littlemole/metacpp/archive/0.0.2.tar.gz"
+    FILENAME "metacpp-0.0.2.tgz"
+    SHA512 26b0bc653c994e7fc7d5397ec2b17de95b1102676d0cdcf26890b8c816b8a2d0e7013320a7152e76ccc29ed19af9525f37cb01d8fbd0fe91ab1c4bddebc430bf
 )
 vcpkg_extract_source_archive(${ARCHIVE})
 

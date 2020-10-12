@@ -1,4 +1,4 @@
 Source: metacpp
-Version: 0.0.1
+Version: 0.0.2
 Description: c++ metadata
-Build-Depends: gtest, expat, jsoncpp
+Build-Depends: gtest, patex, expat, jsoncpp
