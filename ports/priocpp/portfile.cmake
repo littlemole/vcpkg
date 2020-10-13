@@ -15,7 +15,7 @@ set(SOURCE_PATH ${CURRENT_BUILDTREES_DIR}/src/prio-0.0.47)
 vcpkg_download_distfile(ARCHIVE
     URLS "https://github.com/littlemole/prio/archive/0.0.47.tar.gz"
     FILENAME "prio-0.0.47.tgz"
-    SHA512 bc15be8969bede7a5b4bbf59b128cfe413adcf9c5b7065ebf89f13f71bd7a27e58e812c1552ff834fc62a6e81277c9fa5e2fd3679f41fed35b4fee8b603f4ea8
+    SHA512 63de3058e741e4e185d2c188d630863411d4b9443caee1778aea0b1eb3cc5aad9de27414a303851cc86ed7889ac4fa5517198e82bc71ce8982c6dd4ba0a9b803
 )
 vcpkg_extract_source_archive(${ARCHIVE})
 
