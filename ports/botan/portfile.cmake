@@ -1,13 +1,13 @@
-include(vcpkg_common_functions)
-
-set(BOTAN_VERSION 2.11.0)
+set(BOTAN_VERSION 2.15.0)
 
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO randombit/botan
-    REF 16a726c3ad10316bd8d37b6118a5cc52894e8e8f
-    SHA512 3d759fb262d65f7d325a1e888f74cb1c372ef687b0fcc6fc6ba041b83e3dc65c2928b343c65a89e73ea00c09d11cdda3a161ca98dbabe426903c4cbaf030767c
+    REF 3ed6eaa3c1236aed844f5475e2df8b89b3286ac4 # 2.15.0
+    SHA512 a5c76e22f1ad8455ed5dab7c1dff2dd21e8a6e720e024144fe117982fd3b8815e8200844f6fd3abf8326fa4b18d2598c724f7ad5752c517d4b8fab83fb1b5907
     HEAD_REF master
+    PATCHES
+        fix-generate-build-path.patch
 )
 
 if(CMAKE_HOST_WIN32)
@@ -46,6 +46,10 @@ else()
     message(FATAL_ERROR "Unsupported architecture")
 endif()
 
+vcpkg_check_features(OUT_FEATURE_OPTIONS FEATURE_OPTIONS
+    amalgamation BOTAN_AMALGAMATION
+)
+
 function(BOTAN_BUILD BOTAN_BUILD_TYPE)
 
     if(BOTAN_BUILD_TYPE STREQUAL "dbg")
@@ -77,6 +81,10 @@ function(BOTAN_BUILD BOTAN_BUILD_TYPE)
         list(APPEND configure_arguments ${BOTAN_MSVC_RUNTIME}${BOTAN_MSVC_RUNTIME_SUFFIX})
     endif()
 
+    if("-DBOTAN_AMALGAMATION=ON" IN_LIST FEATURE_OPTIONS)
+        list(APPEND configure_arguments --amalgamation)
+    endif()
+
     vcpkg_execute_required_process(
         COMMAND "${PYTHON3}" "${SOURCE_PATH}/configure.py" ${configure_arguments}
         WORKING_DIRECTORY "${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-${BOTAN_BUILD_TYPE}"
@@ -95,13 +103,13 @@ function(BOTAN_BUILD BOTAN_BUILD_TYPE)
     vcpkg_execute_required_process(
         COMMAND "${PYTHON3}" "${SOURCE_PATH}/src/scripts/install.py"
             --prefix=${BOTAN_FLAG_PREFIX}
-            --docdir=share
+            --bindir=${BOTAN_FLAG_PREFIX}/bin
+            --libdir=${BOTAN_FLAG_PREFIX}/lib
+            --pkgconfigdir=${BOTAN_FLAG_PREFIX}/lib
+            --includedir=${BOTAN_FLAG_PREFIX}/include
+            --docdir=${BOTAN_FLAG_PREFIX}/share
         WORKING_DIRECTORY "${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-${BOTAN_BUILD_TYPE}"
         LOGNAME install-${TARGET_TRIPLET}-${BOTAN_BUILD_TYPE})
-
-    if(VCPKG_LIBRARY_LINKAGE STREQUAL dynamic AND CMAKE_HOST_WIN32)
-        file(RENAME ${BOTAN_FLAG_PREFIX}/lib/botan${BOTAN_DEBUG_SUFFIX}.dll ${BOTAN_FLAG_PREFIX}/bin/botan${BOTAN_DEBUG_SUFFIX}.dll)
-    endif()
 
     message(STATUS "Package ${TARGET_TRIPLET}-${BOTAN_BUILD_TYPE} done")
 endfunction()

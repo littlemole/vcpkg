@@ -1,12 +1,14 @@
-include(vcpkg_common_functions)
+vcpkg_fail_port_install(ON_ARCH "arm" "arm64" ON_TARGET "uwp")
 
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
-    REPO intel/tbb
-    REF 4bdba61bafc6ba2d636f31564f1de5702d365cf7
-    SHA512 0b00c9deefdac5dc1f4fbae314e91eb3513b54b47ff6dec08ed2460486fc7d211ab36d6130e5787bfd50523cb613c65f03f9217d967292ca9056e2d3f5010bf8
+    REPO oneapi-src/oneTBB
+    REF eca91f16d7490a8abfdee652dadf457ec820cc37 # 2020_U3
+    SHA512 7144e1dc68304b5358e6ea330431b6f0c61fadb147efa353a5b242777d6fabf7b8cf99b79cffb51b49b911dd17a9f1879619d6eebdf319f23ec3235c89cffc25
     HEAD_REF tbb_2019
-    PATCHES fix-static-build.patch
+    PATCHES
+        fix-static-build.patch
+        terminate-when-buildtool-notfound.patch
 )
 
 file(COPY ${CMAKE_CURRENT_LIST_DIR}/CMakeLists.txt DESTINATION ${SOURCE_PATH})
@@ -115,9 +117,6 @@ string(REPLACE
 string(REPLACE "SHARED IMPORTED)" "UNKNOWN IMPORTED)" _contents "${_contents}")
 file(WRITE ${CURRENT_PACKAGES_DIR}/share/tbb/TBBConfig.cmake "${_contents}")
 
+file(COPY ${CMAKE_CURRENT_LIST_DIR}/usage DESTINATION ${CURRENT_PACKAGES_DIR}/share/tbb)
 # Handle copyright
-file(COPY ${SOURCE_PATH}/LICENSE ${CMAKE_CURRENT_LIST_DIR}/usage DESTINATION ${CURRENT_PACKAGES_DIR}/share/tbb)
-file(RENAME ${CURRENT_PACKAGES_DIR}/share/tbb/LICENSE ${CURRENT_PACKAGES_DIR}/share/tbb/copyright)
-
-vcpkg_test_cmake(PACKAGE_NAME TBB)
-#
+file(INSTALL ${SOURCE_PATH}/LICENSE DESTINATION ${CURRENT_PACKAGES_DIR}/share/${PORT} RENAME copyright)

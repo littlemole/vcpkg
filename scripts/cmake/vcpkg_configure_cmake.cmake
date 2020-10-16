@@ -29,6 +29,8 @@
 ## Disables running the CMake configure step in parallel.
 ## This is needed for libraries which write back into their source directory during configure.
 ##
+## This also disables CMAKE_DISABLE_SOURCE_CHANGES.
+##
 ## ### NO_CHARSET_FLAG
 ## Disables passing `utf-8` as the default character set to `CMAKE_C_FLAGS` and `CMAKE_CXX_FLAGS`.
 ##
@@ -38,7 +40,7 @@
 ## Specifies the precise generator to use.
 ##
 ## This is useful if some project-specific buildsystem has been wrapped in a cmake script that won't perform an actual build.
-## If used for this purpose, it should be set to "NMake Makefiles".
+## If used for this purpose, it should be set to `"NMake Makefiles"`.
 ##
 ## ### OPTIONS
 ## Additional options passed to CMake during the configuration.
@@ -48,6 +50,9 @@
 ##
 ## ### OPTIONS_DEBUG
 ## Additional options passed to CMake during the Debug configuration. These are in addition to `OPTIONS`.
+##
+## ### LOGNAME
+## Name of the log to write the output of the configure call to.
 ##
 ## ## Notes
 ## This command supplies many common arguments to CMake. To see the full list, examine the source.
@@ -59,11 +64,11 @@
 ## * [poco](https://github.com/Microsoft/vcpkg/blob/master/ports/poco/portfile.cmake)
 ## * [opencv](https://github.com/Microsoft/vcpkg/blob/master/ports/opencv/portfile.cmake)
 function(vcpkg_configure_cmake)
-    cmake_parse_arguments(_csc 
+    # parse parameters such that semicolons in arguments to OPTIONS don't get erased
+    cmake_parse_arguments(PARSE_ARGV 0 _csc
         "PREFER_NINJA;DISABLE_PARALLEL_CONFIGURE;NO_CHARSET_FLAG"
-        "SOURCE_PATH;GENERATOR"
+        "SOURCE_PATH;GENERATOR;LOGNAME"
         "OPTIONS;OPTIONS_DEBUG;OPTIONS_RELEASE"
-        ${ARGN}
     )
 
     if(NOT VCPKG_PLATFORM_TOOLSET)
@@ -71,15 +76,16 @@ function(vcpkg_configure_cmake)
             "however, vcpkg.exe must be rebuilt by re-running bootstrap-vcpkg.bat\n")
     endif()
 
+    if(NOT _csc_LOGNAME)
+        set(_csc_LOGNAME config-${TARGET_TRIPLET})
+    endif()
+
     if(CMAKE_HOST_WIN32)
-        set(_PATHSEP ";")
         if(DEFINED ENV{PROCESSOR_ARCHITEW6432})
             set(_csc_HOST_ARCHITECTURE $ENV{PROCESSOR_ARCHITEW6432})
         else()
             set(_csc_HOST_ARCHITECTURE $ENV{PROCESSOR_ARCHITECTURE})
         endif()
-    else()
-        set(_PATHSEP ":")
     endif()
 
     set(NINJA_CAN_BE_USED ON) # Ninja as generator
@@ -151,10 +157,10 @@ function(vcpkg_configure_cmake)
     endif()
 
     # If we use Ninja, make sure it's on PATH
-    if(GENERATOR STREQUAL "Ninja")
+    if(GENERATOR STREQUAL "Ninja" AND NOT DEFINED ENV{VCPKG_FORCE_SYSTEM_BINARIES})
         vcpkg_find_acquire_program(NINJA)
         get_filename_component(NINJA_PATH ${NINJA} DIRECTORY)
-        set(ENV{PATH} "$ENV{PATH}${_PATHSEP}${NINJA_PATH}")
+        vcpkg_add_to_path("${NINJA_PATH}")
         list(APPEND _csc_OPTIONS "-DCMAKE_MAKE_PROGRAM=${NINJA}")
     endif()
 
@@ -180,13 +186,13 @@ function(vcpkg_configure_cmake)
             "Invalid setting for VCPKG_LIBRARY_LINKAGE: \"${VCPKG_LIBRARY_LINKAGE}\". "
             "It must be \"static\" or \"dynamic\"")
     endif()
-    
+
     macro(check_both_vars_are_set var1 var2)
         if((NOT DEFINED ${var1} OR NOT DEFINED ${var2}) AND (DEFINED ${var1} OR DEFINED ${var2}))
             message(FATAL_ERROR "Both ${var1} and ${var2} must be set.")
         endif()
     endmacro()
-    
+
     check_both_vars_are_set(VCPKG_CXX_FLAGS_DEBUG VCPKG_C_FLAGS_DEBUG)
     check_both_vars_are_set(VCPKG_CXX_FLAGS_RELEASE VCPKG_C_FLAGS_RELEASE)
     check_both_vars_are_set(VCPKG_CXX_FLAGS VCPKG_C_FLAGS)
@@ -205,8 +211,12 @@ function(vcpkg_configure_cmake)
             set(VCPKG_CHAINLOAD_TOOLCHAIN_FILE "${SCRIPTS}/toolchains/android.cmake")
         elseif(VCPKG_CMAKE_SYSTEM_NAME STREQUAL "Darwin")
             set(VCPKG_CHAINLOAD_TOOLCHAIN_FILE "${SCRIPTS}/toolchains/osx.cmake")
+        elseif(VCPKG_CMAKE_SYSTEM_NAME STREQUAL "iOS")
+            set(VCPKG_CHAINLOAD_TOOLCHAIN_FILE "${SCRIPTS}/toolchains/ios.cmake")
         elseif(VCPKG_CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
             set(VCPKG_CHAINLOAD_TOOLCHAIN_FILE "${SCRIPTS}/toolchains/freebsd.cmake")
+        elseif(VCPKG_CMAKE_SYSTEM_NAME STREQUAL "MinGW")
+            set(VCPKG_CHAINLOAD_TOOLCHAIN_FILE "${SCRIPTS}/toolchains/mingw.cmake")
         endif()
     endif()
 
@@ -232,9 +242,14 @@ function(vcpkg_configure_cmake)
         "-DVCPKG_C_FLAGS_DEBUG=${VCPKG_C_FLAGS_DEBUG}"
         "-DVCPKG_CRT_LINKAGE=${VCPKG_CRT_LINKAGE}"
         "-DVCPKG_LINKER_FLAGS=${VCPKG_LINKER_FLAGS}"
+        "-DVCPKG_LINKER_FLAGS_RELEASE=${VCPKG_LINKER_FLAGS_RELEASE}"
+        "-DVCPKG_LINKER_FLAGS_DEBUG=${VCPKG_LINKER_FLAGS_DEBUG}"
         "-DVCPKG_TARGET_ARCHITECTURE=${VCPKG_TARGET_ARCHITECTURE}"
         "-DCMAKE_INSTALL_LIBDIR:STRING=lib"
         "-DCMAKE_INSTALL_BINDIR:STRING=bin"
+        "-D_VCPKG_ROOT_DIR=${VCPKG_ROOT_DIR}"
+        "-D_VCPKG_INSTALLED_DIR=${_VCPKG_INSTALLED_DIR}"
+        "-DVCPKG_MANIFEST_INSTALL=OFF"
     )
 
     if(DEFINED ARCH)
@@ -244,7 +259,7 @@ function(vcpkg_configure_cmake)
     endif()
 
     # Sets configuration variables for macOS builds
-    foreach(config_var  INSTALL_NAME_DIR OSX_DEPLOYMENT_TARGET OSX_SYSROOT)
+    foreach(config_var  INSTALL_NAME_DIR OSX_DEPLOYMENT_TARGET OSX_SYSROOT OSX_ARCHITECTURES)
         if(DEFINED VCPKG_${config_var})
             list(APPEND _csc_OPTIONS "-DCMAKE_${config_var}=${VCPKG_${config_var}}")
         endif()
@@ -262,10 +277,11 @@ function(vcpkg_configure_cmake)
         -DCMAKE_INSTALL_PREFIX=${CURRENT_PACKAGES_DIR}/debug)
 
     if(NINJA_HOST AND CMAKE_HOST_WIN32 AND NOT _csc_DISABLE_PARALLEL_CONFIGURE)
+        list(APPEND _csc_OPTIONS "-DCMAKE_DISABLE_SOURCE_CHANGES=ON")
 
         vcpkg_find_acquire_program(NINJA)
         get_filename_component(NINJA_PATH ${NINJA} DIRECTORY)
-        set(ENV{PATH} "$ENV{PATH}${_PATHSEP}${NINJA_PATH}")
+        vcpkg_add_to_path("${NINJA_PATH}")
 
         #parallelize the configure step
         set(_contents
@@ -296,7 +312,7 @@ function(vcpkg_configure_cmake)
         vcpkg_execute_required_process(
             COMMAND ninja -v
             WORKING_DIRECTORY ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel/vcpkg-parallel-configure
-            LOGNAME config-${TARGET_TRIPLET}
+            LOGNAME ${_csc_LOGNAME}
         )
     else()
         if(NOT DEFINED VCPKG_BUILD_TYPE OR VCPKG_BUILD_TYPE STREQUAL "debug")
@@ -305,7 +321,7 @@ function(vcpkg_configure_cmake)
             vcpkg_execute_required_process(
                 COMMAND ${dbg_command}
                 WORKING_DIRECTORY ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-dbg
-                LOGNAME config-${TARGET_TRIPLET}-dbg
+                LOGNAME ${_csc_LOGNAME}-dbg
             )
         endif()
 
@@ -315,7 +331,7 @@ function(vcpkg_configure_cmake)
             vcpkg_execute_required_process(
                 COMMAND ${rel_command}
                 WORKING_DIRECTORY ${CURRENT_BUILDTREES_DIR}/${TARGET_TRIPLET}-rel
-                LOGNAME config-${TARGET_TRIPLET}-rel
+                LOGNAME ${_csc_LOGNAME}-rel
             )
         endif()
     endif()

@@ -1,11 +1,12 @@
-include(vcpkg_common_functions)
-
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO QuantStack/xeus
-    REF 8408f237f33514610a59d19a5ff045ee70dfa02b
-    SHA512 41282addbe5519b6d357e802c48483834cd951604bfeb8c99d96f02d03dec2fc66ea4c091f40ec09348bb60587e8a6efef5e6eb2bb950ba720fc8ceb7a107960
+    REF 424b7cd177886906a59eee535b7de59088461910 # 0.24.1
+    SHA512 877ca45bf649b567a9921d3e8f0adb0299dbe956978bd6e217d0c06617cf3466d08d90d607fd33e129089472e1a96ecec78b1fc21346bc13ba268168a5a6b068
     HEAD_REF master
+    PATCHES
+		Fix-Compile-nlohmann-json.patch
+		Fix-static-build.patch
 )
 
 string(COMPARE EQUAL "${VCPKG_LIBRARY_LINKAGE}" "static" BUILD_STATIC_LIBS)
@@ -42,13 +43,11 @@ if(VCPKG_LIBRARY_LINKAGE STREQUAL static)
         "#ifdef XEUS_STATIC_LIB"
         "#if 1 // #ifdef XEUS_STATIC_LIB"
     )
+	file(REMOVE_RECURSE "${CURRENT_PACKAGES_DIR}/bin" "${CURRENT_PACKAGES_DIR}/debug/bin")
 endif()
 
 # Handle copyright
-configure_file(${SOURCE_PATH}/LICENSE ${CURRENT_PACKAGES_DIR}/share/${PORT}/copyright COPYONLY)
+file(INSTALL ${SOURCE_PATH}/LICENSE DESTINATION ${CURRENT_PACKAGES_DIR}/share/${PORT} RENAME copyright)
 
 # Install usage
 file(COPY ${CMAKE_CURRENT_LIST_DIR}/usage DESTINATION ${CURRENT_PACKAGES_DIR}/share/${PORT})
-
-# CMake integration test
-vcpkg_test_cmake(PACKAGE_NAME ${PORT})
